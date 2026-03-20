@@ -13,6 +13,9 @@ import soldado1808 from '../assets/soldado_1808.png';
 import soldadoLinea from '../assets/soldado_linea.png';
 import sublevadoSxx from '../assets/sublevado.png';
 import uniformeEstandar from '../assets/uniforme_estandar.png';
+import prendaCamisaChaleco from '../assets/prendas_miliciasUrbanas/Camisa_chaleco.png';
+import prendaPantalones from '../assets/prendas_miliciasUrbanas/pantalones.png';
+import prendaSombrero from '../assets/prendas_miliciasUrbanas/sombrero.png';
 
 export const HISTORIA = [
   {
@@ -36,7 +39,28 @@ export const HISTORIA = [
           {
             nombre: "Milicias Urbanas",
             base: miliciasUrbanas,
-            descripcion: "Esta infantería gijonesa se armaba con ropa civil reforzada y se especializaba en defensa litoral."
+            descripcion: "Los soldados de provincia solian vestir con colores sobrios, muchas veces con su indumentaria de diario. En torno al 90% eran vecinos, pescadores y artesanos que tenían que defender la ciudad.\n\nSolían usar camisa de lino, chaleco de cuero oscuro, pantalon gris de lana por la rodilla y botas, ya que las condiciones ambientales eran duras. También llevaban un sombrero de ala, normalmente sin pluma; pero quienes tenían mas recursos podían anadirla. Para que los vigías del cerro no dispararan a los vecinos que defendían la ciudad, se usaba una banda roja de tafetan o lana.",
+            hotspots: [
+              {
+                label: "Sombrero",
+                detalle: "Sombrero civil usado por milicianos en patrullas y defensa costera.",
+                estilo: { top: "17%", left: "52%" },
+                imagen: prendaSombrero
+              },
+              {
+                label: "Camisa y chaleco",
+                detalle: "Prenda superior de uso civil adaptada para servicio defensivo.",
+                estilo: { top: "50%", left: "60%" },
+                imagen: prendaCamisaChaleco
+              },
+              {
+                label: "Pantalones",
+                detalle: "Pantalones de trabajo resistentes para desplazamientos en terreno urbano.",
+                estilo: { top: "74%", left: "38%" },
+                arrowTarget: { x: "23%", y: "60%" },
+                imagen: prendaPantalones
+              }
+            ]
           }
         ]
       }
@@ -63,7 +87,7 @@ export const HISTORIA = [
           {
             nombre: "Soldado de Línea",
             base: soldadoLinea,
-            descripcion: "Fuerte adiestramiento, gorra de placa y fusil de avancarga para mantener la línea."
+            descripcion: "En este momento, el rey de España Felipe V era nieto del Rey Sol francés, Luis XIV. Esto hizo que unificara los ejércitos y trajera de Francia sus fábricas textiles.\n\nEl uniforme no era solo ropa: era propaganda, y hacía que los ejércitos en España parecieran profesionales y modernos.\n\nEn Asturias, se formaron regimientos que vestían ese color blanco que se menciona. Un ejemplo notable fue el Regimiento de Infantería de Asturias, que participó en batallas clave de la península."
           }
         ]
       }
@@ -90,7 +114,7 @@ export const HISTORIA = [
           {
             nombre: "Soldado 1808",
             base: soldado1808,
-            descripcion: "Uniforme recogido, botas altas y fusil de mecha adaptado para partidas rápidas."
+            descripcion: "Hay un cambio significativo en cuanto a la indumentaria militar a principios de este siglo, ya que a finales del siglo anterior empiezan los cambios. Debido a la falta de fondos, se eliminó el blanco borbónico y se usaba el paño pardo, al ser más económico y fácil de conseguir sin teñir.\n\nVestían casaca corta de paño pardo, calzón largo hasta debajo de la espinilla del mismo paño, poncho, chaleco de paño blanco, botín pequeño de paño negro y sombrero redondo con algo más de 3 pulgadas de ala."
           }
         ]
       },
@@ -105,8 +129,18 @@ export const HISTORIA = [
           "Los isabelinos adoptaron uniformes más europeos para inspirar disciplina."
         ],
         bandos: [
-          { nombre: "Isabelinos", base: isabelino, alineacion: "left" },
-          { nombre: "Carlistas", base: carlista, alineacion: "right" }
+          {
+            nombre: "Isabelinos",
+            base: isabelino,
+            descripcion: "En Gijón, la ciudad fue mayoritariamente isabelina (liberal). El ambiente cambió: ya no era la lucha heroica y desastrosa contra Napoleón, sino una guerra civil profesionalizada.\n\nSe crea la Milicia Nacional, y el gobierno de Isabel busca la uniformidad política creando reglamentos estrictos para que todos los soldados de España vistieran igual.\n\nSe introduce el shakó: era más bajo y ancho que el francés de Napoleón, con una placa de latón con el número del regimiento y un pompón rojo.",
+            alineacion: "left"
+          },
+          {
+            nombre: "Carlistas",
+            base: carlista,
+            descripcion: "En esta guerra, la prenda de cabeza lo decía todo. La boina era el símbolo absoluto de los carlistas. En Gijón intentaban pasar desapercibidos sin usar la boina.\n\nEn las tropas se usaban boinas de diferentes colores; al principio más grandes y luego fueron reduciendo su tamaño. Usaban alpargatas por ser más prácticas que las botas.",
+            alineacion: "right"
+          }
         ]
       },
       {
@@ -120,8 +154,18 @@ export const HISTORIA = [
           "Uniformes estándar para oficiales y unidades desde la península."
         ],
         bandos: [
-          { nombre: "Uniforme Estándar", base: uniformeEstandar, alineacion: "left" },
-          { nombre: "Rayadillo", base: rayadillo, alineacion: "right" }
+          {
+            nombre: "Uniforme Estándar",
+            base: uniformeEstandar,
+            descripcion: "La ciudad no era un campo de batalla, sino un puerto estratégico en alerta roja por miedo a un ataque de la armada estadounidense al Cantábrico.\n\nVestían la guerrera azul oscuro de paño con cuello rojo y el icónico pantalón colorado (rojo). Había variaciones según el rango. En la cabeza llevaban el Ros, ese gorro de fieltro gris con visera, muy típico de la península y que los diferenciaba de las tropas que iban al Caribe.",
+            alineacion: "left"
+          },
+          {
+            nombre: "Rayadillo",
+            base: rayadillo,
+            descripcion: "El rayadillo fue un uniforme militar de algodón con rayas azules y blancas, introducido aproximadamente en 1852 por el ejército español para sus tropas de ultramar en Cuba, Filipinas y Puerto Rico. Diseñado para climas tropicales cálidos y húmedos, ofrecía comodidad y resistencia, sustituyendo a la lana. Aquí pudimos verlo en los reclutas que embarcaban en el puerto.\n\nLos soldados ya llevaban la guerrera y el pantalón de rayadillo con su sombrero de paja durante 1898.",
+            alineacion: "right"
+          }
         ]
       }
     ]
@@ -147,7 +191,7 @@ export const HISTORIA = [
           {
             nombre: "Soldado Republicano",
             base: republicanoSxx,
-            descripcion: "Equipamiento más ligero, botas de tela y gorra visera.",
+            descripcion: "El uniforme de la Segunda República se mantiene casi igual, pero con cambios en los símbolos políticos. Se eliminan todas las coronas reales que pudiera llevar el uniforme. Se fue eliminando el uniforme rojo y azul de diario poco a poco para quedarse solo con el caqui.\n\nLos oficiales llevaban gorra de plato, habitualmente sin armar, botas altas y una guerrera de cuatro bolsillos, aunque no fue altamente distribuido por las limitaciones del gobierno en producirlo.",
             alineacion: "left"
           }
         ]
@@ -166,7 +210,7 @@ export const HISTORIA = [
           {
             nombre: "Soldado Alfonso XIII",
             base: alfonsoXIII,
-            descripcion: "Uniforme ceremonial con charreteras doradas y botas altas.",
+            descripcion: "Este es el uniforme reglamentario de 1926, que es el que llevaban todos los soldados independientemente de en qué bando se encuadraran al comenzar la Guerra Civil.\n\nBásicamente, el uniforme consta de 4 elementos: pantalón granadero, camisa caqui, guerrera y gorro isabelino, así como un complemento de cuero que eran las cartucheras. Iba acompañado de mantas, abrigos y otros elementos para el frío, y además los rangos más altos llevaban gorras como la de la imagen.",
             alineacion: "left"
           }
         ]
@@ -184,35 +228,17 @@ export const HISTORIA = [
           {
             nombre: "Milicianos",
             base: milicianoSxx,
-            descripcion: "Vestimenta improvisada: gorra de lona, mono de trabajo y correajes rudimentarios.",
-            alineacion: "left",
+            descripcion: "El uniforme más icónico del miliciano republicano en Gijón no fue el uniforme anterior, sino el mono azul o caqui. La ropa de los obreros convertida en ropa de combate. Los soldados republicanos en Asturias usan el casco Trubia (fabricado aquí mismo, en la Fábrica de Trubia) o el casco checo/soviético que llegaba por el puerto de El Musel.\n\nEran personas de las calles que tomaron los fusiles y después fueron al frente con lo que tenían a mano. Cuando nos referimos a lo que tenían cercano no es solo ropa civil, sino una amalgama de ropas salidas de casas y cuarteles.",
+            alineacion: "left"
           },
           {
             nombre: "Bando Sublevado",
             base: sublevadoSxx,
-            descripcion: "Uniformes más estructurados con cascos y equipo de infantería clásico.",
+            descripcion: "Los militares del bando sublevado vestían una guerrera de color caqui con cuello cerrado y el pantalón noruego con vendas en las pantorrillas y botas altas. Llevan el isabelino, un gorro con borla típico de las unidades de infantería de la época, que algunos milicianos usaron también colocando una estrella. Conservan una estética de ejército regular, a diferencia de los milicianos.",
             alineacion: "right",
-          }
-        ],
-        hotspots: [
-          {
-            label: "Gorra simple",
-            detalle: "Gorra de lona con visera pequeña, símbolo de identificación popular.",
-            estilo: { top: "14%", left: "46%" }
-          },
-          {
-            label: "Mono de trabajo",
-            detalle: "Pantalón enterizo con refuerzos en rodillas y bolsillos laterales.",
-            estilo: { top: "50%", left: "60%" }
-          },
-          {
-            label: "Correajes",
-            detalle: "Tirantes de cuero sujetaban cartucheras, cantimplora y granadas improvisadas.",
-            estilo: { top: "74%", left: "38%" }
           }
         ]
       }
     ]
   }
 ];
-

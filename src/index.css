@@ -108,6 +108,165 @@ body {
   transform-origin: center;
 }
 
+@keyframes timeline-prenda-arrow-draw {
+  from {
+    stroke-dashoffset: 1;
+    opacity: 0.15;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes timeline-prenda-sticker-pop {
+  0% {
+    opacity: 0;
+    filter: blur(1.5px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.timeline-prenda-arrow-path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: timeline-prenda-arrow-draw 0.54s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.timeline-prenda-arrow-head {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: timeline-prenda-arrow-draw 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) 0.33s forwards;
+}
+
+@keyframes timeline-prenda-arrow-sticker-in {
+  0% {
+    opacity: 0.9;
+    clip-path: inset(0 100% 0 0);
+    filter: blur(0.7px) saturate(0.95);
+  }
+  100% {
+    opacity: 0.9;
+    clip-path: inset(0 0 0 0);
+    filter: blur(0) saturate(1);
+  }
+}
+
+.timeline-prenda-arrow-sticker-shell {
+  overflow: visible;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.timeline-prenda-arrow-sticker {
+  will-change: opacity, filter, clip-path;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  opacity: 0.9;
+  animation: timeline-prenda-arrow-sticker-in 0.9s linear forwards;
+}
+
+.timeline-prenda-sticker {
+  animation: timeline-prenda-sticker-pop 0.28s cubic-bezier(0.2, 0.9, 0.25, 1) forwards;
+}
+
+@keyframes timeline-prenda-hotspot-wave {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.76;
+  }
+  70% {
+    transform: scale(1.22);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.22);
+    opacity: 0;
+  }
+}
+
+@keyframes timeline-prenda-hotspot-core-pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.96);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.14);
+    filter: brightness(1.18);
+  }
+}
+
+.timeline-prenda-hotspot-primary {
+  backdrop-filter: blur(1px);
+}
+
+.timeline-prenda-hotspot-secondary {
+  backdrop-filter: blur(0.5px);
+}
+
+.timeline-prenda-hotspot-wave {
+  border: 2px solid rgba(255, 242, 210, 0.84);
+  box-shadow: 0 0 26px rgba(255, 232, 171, 0.58);
+  animation: timeline-prenda-hotspot-wave 1.35s ease-out infinite;
+}
+
+.timeline-prenda-hotspot-core {
+  animation: timeline-prenda-hotspot-core-pulse 1.25s ease-in-out infinite;
+}
+
+@keyframes timeline-prenda-hotspot-dot-breathe {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.82;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes timeline-prenda-hotspot-halo-breathe {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(0.94);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.14);
+    opacity: 0.14;
+  }
+}
+
+.timeline-prenda-hotspot-dot {
+  background: rgba(0, 0, 0, 0.84);
+  filter: blur(0.3px);
+  box-shadow: 0 0 7px rgba(0, 0, 0, 0.45);
+  animation: timeline-prenda-hotspot-dot-breathe 1.15s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.timeline-prenda-hotspot-dot-active {
+  background: rgba(0, 0, 0, 0.95);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.58);
+}
+
+.timeline-prenda-hotspot-halo {
+  background: rgba(0, 0, 0, 0.26);
+  filter: blur(2.4px);
+  animation: timeline-prenda-hotspot-halo-breathe 1.15s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.timeline-prenda-hotspot-halo-active {
+  background: rgba(0, 0, 0, 0.34);
+}
+
 @keyframes timeline-hint-blink {
   0%,
   100% {

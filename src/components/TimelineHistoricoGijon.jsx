@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HISTORIA } from '../data/conflictos';
+import BandoPrendaInspector from './BandoPrendaInspector';
 import terciosImage from '../assets/tercios.jpg';
 import sxviiiImage from '../assets/sxviii.jpg';
 import sxixImage from '../assets/Sxix.jpg';
@@ -229,6 +230,10 @@ export default function TimelineHistoricoGijon() {
     activeConflict?.descripcionBreve ??
     activeConflict?.detalles?.[0] ??
     'Sin descripcion disponible.';
+  const isLongBandoDescription = (selectedBandoDescription?.length ?? 0) > 260;
+  const selectedBandoName = selectedBando?.nombre ?? 'Bando';
+  const isLongBandoTitle = (selectedBandoName?.length ?? 0) > 15;
+  const selectedBandoHotspots = selectedBando?.hotspots ?? activeConflict?.hotspots ?? [];
   const viewportScale = useMemo(() => getViewportScale(viewportWidth), [viewportWidth]);
   const isMobile = viewportWidth <= MOBILE_BREAKPOINT;
   const timelineScaleFactor = isMobile ? MOBILE_TIMELINE_SCALE : 1;
@@ -1084,22 +1089,20 @@ export default function TimelineHistoricoGijon() {
             </button>
           )}
 
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-6">
+          <div
+            className={`absolute inset-0 z-10 flex items-center justify-center px-6 ${
+              isBandoView ? 'pointer-events-auto' : 'pointer-events-none'
+            }`}
+          >
             {selectedBandoImage ? (
-              <div className="timeline-mannequin-stage">
-                <div className="timeline-mannequin-aura" aria-hidden="true" />
-                <img
-                  src={selectedBandoImage}
-                  alt=""
-                  aria-hidden="true"
-                  className="timeline-mannequin-silhouette-shadow"
-                />
-                <img
-                  src={selectedBandoImage}
-                  alt={selectedBando?.nombre ?? 'Bando'}
-                  className="timeline-mannequin-image"
-                />
-              </div>
+              <BandoPrendaInspector
+                imageSrc={selectedBandoImage}
+                bandoName={selectedBando?.nombre ?? 'Bando'}
+                hotspots={selectedBandoHotspots}
+                accentColor={activeSiglo?.acento ?? '#7b8465'}
+                isMobile={isMobile}
+                viewportScale={viewportScale}
+              />
             ) : (
               <span className="text-[0.76rem] font-semibold uppercase tracking-[0.3em] text-[#fff8f1] opacity-85">
                 SIN IMAGEN
@@ -1112,13 +1115,13 @@ export default function TimelineHistoricoGijon() {
               isMobile ? 'rounded-none' : 'rounded-none border-l-0'
             }`}
             style={{
-              top: isMobile ? 'auto' : `calc(50% + ${timelineLineHalfThickness})`,
-              bottom: isMobile ? `calc(${timelineLineThickness} + ${scalePx(54)}px)` : 'auto',
+              top: 'auto',
+              bottom: isMobile ? `calc(${timelineLineThickness} + ${scalePx(54)}px)` : timelineLineThickness,
               transform: isBandoView
-                ? (isMobile ? 'translateX(-50%) translateY(0)' : 'translateY(-50%) translateX(-12%)')
+                ? (isMobile ? 'translateX(-50%) translateY(0)' : 'translateX(-12%)')
                 : (isMobile
                     ? 'translateX(-50%) translateY(20px)'
-                    : 'translateY(-50%) translateX(calc(-112% - 56px))'),
+                    : 'translateX(calc(-112% - 56px))'),
               width: isMobile ? `min(${scalePx(460)}px, 92vw)` : `min(${scalePx(520)}px, 46vw)`,
               minWidth: isMobile ? `${scalePx(248)}px` : `${scalePx(320)}px`,
               height: isMobile
@@ -1153,7 +1156,7 @@ export default function TimelineHistoricoGijon() {
               style={{
                 paddingLeft: isMobile ? `calc(${scalePx(18)}px + 8%)` : `calc(${scalePx(24)}px + 12%)`,
                 paddingRight: `${scalePx(isMobile ? 14 : 24)}px`,
-                paddingTop: `${scalePx(isMobile ? 52 : 70)}px`,
+                paddingTop: `${scalePx(isMobile ? (isLongBandoTitle ? 84 : 64) : (isLongBandoTitle ? 132 : 98))}px`,
               }}
             >
               <p
@@ -1165,7 +1168,7 @@ export default function TimelineHistoricoGijon() {
                   right: `${scalePx(isMobile ? 14 : 24)}px`,
                   transform: 'none',
                   zIndex: 4,
-                  fontSize: `${((isMobile ? 2.06 : 2.92) * viewportScale).toFixed(3)}rem`,
+                  fontSize: `${((isMobile ? (isLongBandoTitle ? 1.95 : 2.3) : (isLongBandoTitle ? 2.65 : 3.25)) * viewportScale).toFixed(3)}rem`,
                   lineHeight: 1.02,
                   letterSpacing: '0.08em',
                   marginTop: '0px',
@@ -1176,16 +1179,17 @@ export default function TimelineHistoricoGijon() {
                   textShadow: '0 4px 12px rgba(0, 0, 0, 0.28)',
                 }}
               >
-                {selectedBando?.nombre ?? 'Bando'}
+                {selectedBandoName}
               </p>
               <p
                 className="min-h-0 flex-1 overflow-y-auto pr-1 font-semibold"
                 style={{
-                  fontSize: `${((isMobile ? 0.94 : 1.12) * viewportScale).toFixed(3)}rem`,
-                  lineHeight: isMobile ? 1.48 : 1.6,
+                  fontSize: `${((isMobile ? (isLongBandoDescription ? 0.86 : 0.94) : (isLongBandoDescription ? 1.0 : 1.12)) * viewportScale).toFixed(3)}rem`,
+                  lineHeight: isLongBandoDescription ? 1.52 : isMobile ? 1.48 : 1.6,
                   fontFamily: '"Mulish", sans-serif',
                   color: '#050505',
                   textTransform: 'none',
+                  whiteSpace: 'pre-line',
                   textWrap: 'pretty',
                   textShadow: 'none',
                 }}
