@@ -7,6 +7,14 @@ import sxixImage from '../assets/Sxix.jpg';
 import sxxImage from '../assets/sxx.jpg';
 
 const romanLabel = (siglo) => siglo.replace(/^S\.?\s*/i, '').trim();
+const getImageTitle = (imagePath, fallback = '') => {
+  if (!imagePath || typeof imagePath !== 'string') return fallback;
+  const filename = imagePath.split('/').pop() ?? '';
+  const baseWithoutExt = filename.replace(/\.[^.]+$/, '');
+  const baseWithoutHash = baseWithoutExt.replace(/-[A-Za-z0-9_-]{6,}$/, '');
+  const normalized = baseWithoutHash.replace(/[_-]+/g, ' ').trim();
+  return normalized || fallback;
+};
 const PREFERRED_SIGLO_ORDER = ['S. XVII', 'S. XVIII', 'S. XIX', 'S. XX'];
 const LOOP_COPIES = 1;
 const ORDERED_HISTORIA = (() => {
@@ -156,6 +164,7 @@ export default function TimelineHistoricoGijon() {
   const [singleBandoNavSide, setSingleBandoNavSide] = useState('right');
   const [isMobileBandoInfoOpen, setIsMobileBandoInfoOpen] = useState(false);
   const [mobileInfoButtonTopPx, setMobileInfoButtonTopPx] = useState(null);
+  const [expandedCenturyImage, setExpandedCenturyImage] = useState(null);
   const [forcedRevealSigloIdx, setForcedRevealSigloIdx] = useState(null);
   const [activeDotKey, setActiveDotKey] = useState(getDefaultDotKey);
   const [isDragging, setIsDragging] = useState(false);
@@ -270,6 +279,12 @@ export default function TimelineHistoricoGijon() {
       setIsMobileBandoInfoOpen(false);
     }
   }, [isBandoView, isMobile]);
+
+  useEffect(() => {
+    if (isBandoView) {
+      setExpandedCenturyImage(null);
+    }
+  }, [isBandoView]);
 
   useEffect(() => {
     if (!isMobile || !isBandoView) {
@@ -585,6 +600,50 @@ export default function TimelineHistoricoGijon() {
     }
   }, []);
 
+  const closeExpandedCenturyImage = useCallback(() => {
+    setExpandedCenturyImage(null);
+  }, []);
+
+  const handleCenturyImageClick = useCallback(
+    (index, imageSrc, imageAlt, canExpand) => {
+      if (dragRef.current.shouldPreventClick) {
+        dragRef.current.shouldPreventClick = false;
+        return;
+      }
+      if (canExpand && imageSrc) {
+        setExpandedCenturyImage({
+          src: imageSrc,
+          alt: imageAlt ?? 'Imagen del siglo',
+        });
+        return;
+      }
+      handleSigloClick(index);
+      if (imageSrc) {
+        // Open right after activation so one click is enough.
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            setExpandedCenturyImage({
+              src: imageSrc,
+              alt: imageAlt ?? 'Imagen del siglo',
+            });
+          });
+        });
+      }
+    },
+    [handleSigloClick],
+  );
+
+  useEffect(() => {
+    if (!expandedCenturyImage) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setExpandedCenturyImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expandedCenturyImage]);
+
   const handleBandoClick = useCallback((entry, bandoIndex) => {
     dragRef.current.shouldPreventClick = false;
     if (pendingDotSwitchTimeoutRef.current) {
@@ -649,6 +708,8 @@ export default function TimelineHistoricoGijon() {
   const renderCenturyNode = (entry) => {
     const index = entry.sigloIndex;
     const siglo = ORDERED_HISTORIA[index];
+    const fallbackTitle = siglo?.etiqueta ?? siglo?.siglo ?? '';
+    const centuryCaption = siglo?.pieDeFoto ?? 'Pie de foto. Grabado original de Gijón';
     const isXVII = index === 0;
     const isXVIII = index === 1;
     const isXIX = index === 2;
@@ -696,6 +757,8 @@ export default function TimelineHistoricoGijon() {
     );
     const imageHoleWidth = hasHorizontalRectEffect ? Math.round(imageHoleSize * 1.2) : imageHoleSize;
     const imageHoleHeight = hasHorizontalRectEffect ? Math.round(imageHoleSize * 0.86) : imageHoleSize;
+    const centuryImageTitle = getImageTitle(centuryImage, fallbackTitle);
+    const activeCenturyTitleOffset = Math.round(imageHoleHeight / 2 + scaleTimelinePx(isMobile ? 10 : 12));
     const pillWidth = scaleTimelinePx(SIGLO_PILL_WIDTH);
     const pillDisplayWidth = Math.max(pillWidth, Math.round(displayBlockWidth * 0.94));
     const centerMaskWidth = displayBlockWidth + scaleTimelinePx(isMobile ? 68 : 96);
@@ -752,7 +815,11 @@ export default function TimelineHistoricoGijon() {
 
         <button
           type="button"
-          onClick={() => handleSigloClick(index)}
+          onClick={() => handleCenturyImageClick(index, centuryImage, centuryCaption, isActive)}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            dragRef.current.shouldPreventClick = false;
+          }}
           onMouseEnter={() => setHoveredCenturyIdx(index)}
           onMouseLeave={() =>
             setHoveredCenturyIdx((prev) => (prev === index ? null : prev))
@@ -791,6 +858,27 @@ export default function TimelineHistoricoGijon() {
               transition: 'width 0.35s ease, height 0.35s ease',
             }}
           />
+          {isActive && centuryImageTitle && (
+            <span
+              className="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 font-semibold"
+              style={{
+                top: `calc(50% + ${activeCenturyTitleOffset}px)`,
+                width: `${Math.max(imageHoleWidth, scaleTimelinePx(isMobile ? 94 : 120))}px`,
+                fontSize: `${((isMobile ? 0.56 : 0.64) * viewportScale).toFixed(3)}rem`,
+                letterSpacing: '0.02em',
+                lineHeight: 1,
+                fontFamily: '"Mulish", sans-serif',
+                color: '#050505',
+                textAlign: 'right',
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                textShadow: 'none',
+                opacity: 0.95,
+              }}
+            >
+              {centuryCaption}
+            </span>
+          )}
         </button>
       </div>
     );
@@ -1324,6 +1412,36 @@ export default function TimelineHistoricoGijon() {
           </div>
         </div>
       </div>
+
+      {expandedCenturyImage && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="absolute inset-0 z-[80] flex items-center justify-center bg-black/72 px-4"
+          onClick={closeExpandedCenturyImage}
+        >
+          <button
+            type="button"
+            aria-label="Cerrar imagen ampliada"
+            onClick={closeExpandedCenturyImage}
+            className="absolute right-4 top-4 z-[82] rounded-[2px] border border-white/55 bg-black/46 px-3 py-1 text-sm font-semibold text-[#fff8f1]"
+          >
+            Cerrar
+          </button>
+          <img
+            src={expandedCenturyImage.src}
+            alt={expandedCenturyImage.alt}
+            className="z-[81] object-contain"
+            style={{
+              width: 'min(92vw, 1800px)',
+              maxHeight: '90vh',
+              height: 'auto',
+              filter: 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.46))',
+            }}
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
