@@ -64,7 +64,6 @@ const MOBILE_BREAKPOINT = 960;
 const MOBILE_TIMELINE_SCALE = 0.8;
 const MOBILE_LINE_THICKNESS = '1.2cm';
 const MOBILE_LINE_HALF_THICKNESS = '0.6cm';
-const MOBILE_BANDO_SIDE_LANE = 170;
 
 const hexToRgba = (hex, alpha) => {
   const value = hex?.replace('#', '');
@@ -155,6 +154,8 @@ export default function TimelineHistoricoGijon() {
   const [hoveredCenturyIdx, setHoveredCenturyIdx] = useState(null);
   const [selectedBandoIndex, setSelectedBandoIndex] = useState(null);
   const [singleBandoNavSide, setSingleBandoNavSide] = useState('right');
+  const [isMobileBandoInfoOpen, setIsMobileBandoInfoOpen] = useState(false);
+  const [mobileInfoButtonTopPx, setMobileInfoButtonTopPx] = useState(null);
   const [forcedRevealSigloIdx, setForcedRevealSigloIdx] = useState(null);
   const [activeDotKey, setActiveDotKey] = useState(getDefaultDotKey);
   const [isDragging, setIsDragging] = useState(false);
@@ -165,6 +166,7 @@ export default function TimelineHistoricoGijon() {
   const [overlayBackground, setOverlayBackground] = useState(null);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
   const wrapperRef = useRef(null);
+  const conflictTitleWrapRef = useRef(null);
   const dotRefs = useRef({});
   const centuryRefs = useRef({});
   const deployFrameRef = useRef(null);
@@ -253,8 +255,7 @@ export default function TimelineHistoricoGijon() {
     },
     [timelineScaleFactor, viewportScale],
   );
-  const mobileBandoSideLanePx =
-    isMobile && nextBandoTarget ? scalePx(MOBILE_BANDO_SIDE_LANE) : 0;
+  const showBandoInfoPanel = isBandoView && (!isMobile || isMobileBandoInfoOpen);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -263,6 +264,33 @@ export default function TimelineHistoricoGijon() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!isBandoView || !isMobile) {
+      setIsMobileBandoInfoOpen(false);
+    }
+  }, [isBandoView, isMobile]);
+
+  useEffect(() => {
+    if (!isMobile || !isBandoView) {
+      setMobileInfoButtonTopPx(null);
+      return undefined;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      const defaultTop = scalePx(96);
+      const titleNode = conflictTitleWrapRef.current;
+      if (!titleNode) {
+        setMobileInfoButtonTopPx(defaultTop);
+        return;
+      }
+
+      const measuredTop = Math.ceil(titleNode.offsetTop + titleNode.offsetHeight + scalePx(12));
+      setMobileInfoButtonTopPx(Math.max(defaultTop, measuredTop));
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [activeConflict?.nombre, isBandoView, isMobile, scalePx, viewportWidth]);
 
   const runNextBackgroundTransition = useCallback(() => {
     if (backgroundFadeTimeoutRef.current) {
@@ -567,6 +595,7 @@ export default function TimelineHistoricoGijon() {
     setSigloIdx(entry.sigloIndex);
     setSelectedBandoIndex(bandoIndex);
     setSingleBandoNavSide('right');
+    setIsMobileBandoInfoOpen(false);
     setBandoViewSigloIdx(entry.sigloIndex);
   }, []);
 
@@ -590,6 +619,7 @@ export default function TimelineHistoricoGijon() {
       setBandoViewSigloIdx(null);
       setSelectedBandoIndex(null);
       setSingleBandoNavSide('right');
+      setIsMobileBandoInfoOpen(false);
       setSigloIdx(index);
       const firstConflict = ORDERED_HISTORIA[index]?.conflictos?.[0];
       if (firstConflict) {
@@ -1028,7 +1058,10 @@ export default function TimelineHistoricoGijon() {
             pointerEvents: isBandoView ? 'auto' : 'none',
           }}
         >
-          <div className="pointer-events-none absolute inset-x-0 top-8 z-20 flex justify-center px-6">
+          <div
+            ref={conflictTitleWrapRef}
+            className="pointer-events-none absolute inset-x-0 top-8 z-20 flex justify-center px-6"
+          >
             <div
               className="rounded-none border px-6 py-2 text-center"
               style={{
@@ -1044,6 +1077,32 @@ export default function TimelineHistoricoGijon() {
             </div>
           </div>
 
+          {isMobile && isBandoView && (
+            <div
+              className="absolute inset-x-0 z-30 flex justify-center px-6"
+              style={{ top: `${mobileInfoButtonTopPx ?? scalePx(96)}px` }}
+            >
+              <button
+                type="button"
+                onClick={() => setIsMobileBandoInfoOpen((prev) => !prev)}
+                className="pointer-events-auto rounded-[3px] border uppercase tracking-[0.14em]"
+                style={{
+                  padding: `${scalePx(6)}px ${scalePx(12)}px`,
+                  fontSize: `${(0.72 * viewportScale).toFixed(3)}rem`,
+                  fontWeight: 700,
+                  color: '#050505',
+                  backgroundColor: hexToRgba(activeSiglo?.acento ?? '#7b8465', 0.74),
+                  borderColor: hexToRgba(activeSiglo?.acento ?? '#7b8465', 0.88),
+                  boxShadow: '0 4px 10px rgba(0, 0, 0, 0.24)',
+                }}
+                aria-expanded={isMobileBandoInfoOpen}
+                aria-controls="mobile-bando-info-panel"
+              >
+                {isMobileBandoInfoOpen ? 'ocultar info' : '+ info'}
+              </button>
+            </div>
+          )}
+
           <span
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-0 z-[25]"
@@ -1057,34 +1116,43 @@ export default function TimelineHistoricoGijon() {
             <button
               type="button"
               onClick={handleSingleBandoNav}
-              className={`pointer-events-auto absolute z-40 flex items-center gap-2 rounded-[3px] border uppercase tracking-[0.16em] transition-all duration-200 ${singleBandoNavSide === 'right' ? 'justify-end' : 'justify-start'}`}
+              className={`pointer-events-auto absolute z-40 flex items-center gap-2 rounded-[3px] border uppercase transition-all duration-200 ${singleBandoNavSide === 'right' ? 'justify-end' : 'justify-start'}`}
               style={{
                 ...(singleBandoNavSide === 'right'
                   ? { right: `${scalePx(isMobile ? 10 : 12)}px` }
                   : { left: `${scalePx(isMobile ? 10 : 12)}px` }),
-                top: `calc(100% - ${timelineLineHalfThickness})`,
-                transform: 'translateY(-50%)',
-                minWidth: `${scalePx(isMobile ? 148 : 214)}px`,
-                maxWidth: isMobile ? '46vw' : `min(${scalePx(320)}px, 26vw)`,
-                padding: `${scalePx(isMobile ? 7 : 9)}px ${scalePx(isMobile ? 10 : 12)}px`,
-                backgroundColor: hexToRgba(activeSiglo?.acento ?? '#8f5c3b', 0.74),
-                color: '#fff8f1',
-                borderColor: hexToRgba(activeSiglo?.acento ?? '#8f5c3b', 0.85),
+                ...(isMobile
+                  ? {
+                      top: 'auto',
+                      bottom: `calc(${timelineLineThickness} + ${scalePx(8)}px)`,
+                      transform: 'none',
+                    }
+                  : {
+                      top: `calc(100% - ${timelineLineHalfThickness})`,
+                      transform: 'translateY(-50%)',
+                    }),
+                minWidth: `${scalePx(isMobile ? 120 : 214)}px`,
+                maxWidth: isMobile ? '42vw' : `min(${scalePx(320)}px, 26vw)`,
+                padding: `${scalePx(isMobile ? 5 : 9)}px ${scalePx(isMobile ? 8 : 12)}px`,
+                backgroundColor: hexToRgba(activeSiglo?.acento ?? '#8f5c3b', isMobile ? 0.66 : 0.74),
+                color: isMobile ? '#050505' : '#fff8f1',
+                borderColor: hexToRgba(activeSiglo?.acento ?? '#8f5c3b', isMobile ? 0.78 : 0.85),
                 borderWidth: '1px',
                 boxShadow: `0 0 0 1px ${hexToRgba(activeSiglo?.acento ?? '#8f5c3b', 0.2)}, 0 4px 10px rgba(0, 0, 0, 0.24)`,
-                fontSize: `${((isMobile ? 0.72 : 0.82) * viewportScale).toFixed(3)}rem`,
+                fontSize: `${((isMobile ? 0.56 : 0.82) * viewportScale).toFixed(3)}rem`,
+                letterSpacing: isMobile ? '0.06em' : '0.16em',
               }}
               aria-label={`Ir al bando ${nextBandoTarget.nextName}`}
               title={nextBandoTarget.nextName}
             >
               {singleBandoNavSide === 'left' && (
-                <span style={{ fontSize: `${((isMobile ? 0.9 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'<'}</span>
+                <span style={{ fontSize: `${((isMobile ? 0.72 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'<'}</span>
               )}
               <span className={`truncate font-semibold ${singleBandoNavSide === 'right' ? 'text-right' : 'text-left'}`}>
                 {nextBandoTarget.nextName}
               </span>
               {singleBandoNavSide === 'right' && (
-                <span style={{ fontSize: `${((isMobile ? 0.9 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'>'}</span>
+                <span style={{ fontSize: `${((isMobile ? 0.72 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'>'}</span>
               )}
             </button>
           )}
@@ -1099,6 +1167,7 @@ export default function TimelineHistoricoGijon() {
                 imageSrc={selectedBandoImage}
                 bandoName={selectedBando?.nombre ?? 'Bando'}
                 hotspots={selectedBandoHotspots}
+                showArrows={!selectedBando?.hideArrows}
                 accentColor={activeSiglo?.acento ?? '#7b8465'}
                 isMobile={isMobile}
                 viewportScale={viewportScale}
@@ -1111,13 +1180,14 @@ export default function TimelineHistoricoGijon() {
           </div>
 
           <div
+            id="mobile-bando-info-panel"
             className={`absolute z-20 overflow-visible border border-transparent ${
               isMobile ? 'rounded-none' : 'rounded-none border-l-0'
             }`}
             style={{
               top: 'auto',
               bottom: isMobile ? `calc(${timelineLineThickness} + ${scalePx(54)}px)` : timelineLineThickness,
-              transform: isBandoView
+              transform: showBandoInfoPanel
                 ? (isMobile ? 'translateX(-50%) translateY(0)' : 'translateX(-12%)')
                 : (isMobile
                     ? 'translateX(-50%) translateY(20px)'
@@ -1136,21 +1206,24 @@ export default function TimelineHistoricoGijon() {
               borderWidth: `${isMobile ? 2 : 2}px`,
               backdropFilter: 'blur(6px) saturate(108%)',
               WebkitBackdropFilter: 'blur(6px) saturate(108%)',
-              opacity: isBandoView ? 1 : 0,
+              opacity: showBandoInfoPanel ? 1 : 0,
               boxShadow: isMobile
                 ? '0 0 18px rgba(255,255,255,0.26), 0 8px 16px rgba(0,0,0,0.2)'
                 : '0 0 24px rgba(255,255,255,0.24), 0 12px 24px rgba(0,0,0,0.22)',
               transition: `opacity ${VIEW_TRANSITION_MS}ms ease, transform ${VIEW_TRANSITION_MS}ms ease`,
+              pointerEvents: showBandoInfoPanel ? 'auto' : 'none',
             }}
           >
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 left-0 w-5"
-              style={{
-                width: `${scalePx(isMobile ? 4 : 6)}px`,
-                background: 'rgba(0, 0, 0, 0.24)',
-              }}
-            />
+            {!isMobile && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 left-0 w-5"
+                style={{
+                  width: `${scalePx(6)}px`,
+                  background: 'rgba(0, 0, 0, 0.24)',
+                }}
+              />
+            )}
             <div
               className="relative flex h-full min-h-0 flex-col gap-3 px-6 py-5 text-[#050505]"
               style={{
@@ -1208,14 +1281,8 @@ export default function TimelineHistoricoGijon() {
             top: `calc(100% - ${timelineLineHalfThickness})`,
             bottom: 'auto',
             transform: isBandoView ? 'translateY(-50%)' : 'translateY(calc(-50% + 14px))',
-            paddingLeft:
-              isMobile && singleBandoNavSide === 'left'
-                ? `${mobileBandoSideLanePx + scalePx(10)}px`
-                : `${scalePx(8)}px`,
-            paddingRight:
-              isMobile && singleBandoNavSide === 'right'
-                ? `${mobileBandoSideLanePx + scalePx(10)}px`
-                : `${scalePx(8)}px`,
+            paddingLeft: `${scalePx(8)}px`,
+            paddingRight: `${scalePx(8)}px`,
             transition: `opacity ${VIEW_TRANSITION_MS}ms ease, transform ${VIEW_TRANSITION_MS}ms ease`,
             pointerEvents: 'none',
           }}
@@ -1224,10 +1291,7 @@ export default function TimelineHistoricoGijon() {
             className={`pointer-events-auto flex items-center justify-center gap-2 ${isMobile ? 'flex-nowrap' : 'flex-wrap'}`}
             style={{
               padding: `${scalePx(isMobile ? 3 : 4)}px`,
-              maxWidth:
-                isMobile && nextBandoTarget
-                  ? `calc(100% - ${mobileBandoSideLanePx}px)`
-                  : '100%',
+              maxWidth: '100%',
               overflowX: isMobile ? 'auto' : 'visible',
             }}
           >

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import flechaA from '../assets/flechas/flecha .png';
-import flechaB from '../assets/flechas/flechaa.png';
-import flechaC from '../assets/flechas/flechaaa.png';
+import flechaA from '../assets/flechas/flecha_nueva_1.png';
+import flechaB from '../assets/flechas/flecha_nueva_2.png';
+import flechaC from '../assets/flechas/flecha_nueva_3.png';
 
 const getHotspotImage = (hotspot) =>
   hotspot?.imagen ?? hotspot?.image ?? hotspot?.prendaImagen ?? hotspot?.asset ?? null;
@@ -35,27 +35,27 @@ const parseRatio = (value, fallback) => {
 const ARROW_STICKERS = [
   {
     src: flechaA,
-    width: 2233,
-    height: 375,
-    tail: { x: 118, y: 134 },
-    tip: { x: 2097, y: 371 },
-    tipFlipped: { x: 2185, y: 45 },
+    width: 2354,
+    height: 285,
+    tail: { x: 94, y: 122 },
+    tip: { x: 2175, y: 155 },
+    tipFlipped: { x: 2175, y: 130 },
   },
   {
     src: flechaB,
-    width: 2214,
-    height: 955,
-    tail: { x: 173, y: 163 },
-    tip: { x: 2051, y: 842 },
-    tipFlipped: { x: 2060, y: 138 },
+    width: 2333,
+    height: 232,
+    tail: { x: 63, y: 80 },
+    tip: { x: 2190, y: 68 },
+    tipFlipped: { x: 2190, y: 164 },
   },
   {
     src: flechaC,
-    width: 1649,
-    height: 267,
-    tail: { x: 123, y: 140 },
-    tip: { x: 1580, y: 134 },
-    tipFlipped: { x: 1580, y: 134 },
+    width: 2306,
+    height: 195,
+    tail: { x: 44, y: 110 },
+    tip: { x: 2215, y: 90 },
+    tipFlipped: { x: 2215, y: 105 },
   },
 ];
 
@@ -63,6 +63,7 @@ export default function BandoPrendaInspector({
   imageSrc,
   bandoName,
   hotspots,
+  showArrows = true,
   isMobile = false,
   viewportScale = 1,
 }) {
@@ -94,7 +95,7 @@ export default function BandoPrendaInspector({
   const activeHotspotImage = getHotspotImage(activeHotspot);
 
   const updateArrow = useCallback(() => {
-    if (isMobile || activeHotspotIndex === null) {
+    if (!showArrows || isMobile || activeHotspotIndex === null) {
       setArrowGeometry(null);
       return;
     }
@@ -188,7 +189,7 @@ export default function BandoPrendaInspector({
         prev.src === nextGeometry.src;
       return almostSamePosition ? prev : nextGeometry;
     });
-  }, [activeHotspotIndex, isMobile, normalizedHotspots]);
+  }, [activeHotspotIndex, isMobile, normalizedHotspots, showArrows]);
 
   const scheduleArrowUpdate = useCallback(() => {
     if (arrowRafRef.current !== null) return;
@@ -229,7 +230,7 @@ export default function BandoPrendaInspector({
 
   return (
     <div className="relative">
-      {!isMobile && arrowGeometry && (
+      {!isMobile && showArrows && arrowGeometry && (
         <div
           key={`arrow-screen-${arrowGeometry.key}`}
           aria-hidden="true"
