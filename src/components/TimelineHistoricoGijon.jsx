@@ -5,6 +5,7 @@ import terciosImage from '../assets/tercios.jpg';
 import sxviiiImage from '../assets/sxviii.jpg';
 import sxixImage from '../assets/Sxix.jpg';
 import sxxImage from '../assets/sxx.jpg';
+import introVideo from '../assets/video/PANTALLA CARGA BATERIA ALTA (2).mp4';
 
 const romanLabel = (siglo) => siglo.replace(/^S\.?\s*/i, '').trim();
 const getImageTitle = (imagePath, fallback = '') => {
@@ -72,6 +73,7 @@ const MOBILE_BREAKPOINT = 960;
 const MOBILE_TIMELINE_SCALE = 0.8;
 const MOBILE_LINE_THICKNESS = '1.2cm';
 const MOBILE_LINE_HALF_THICKNESS = '0.6cm';
+const IDLE_TIMEOUT_MS = 30000;
 
 const hexToRgba = (hex, alpha) => {
   const value = hex?.replace('#', '');
@@ -174,6 +176,7 @@ export default function TimelineHistoricoGijon() {
   const [baseBackground, setBaseBackground] = useState(ORDERED_HISTORIA[0]?.fondo ?? null);
   const [overlayBackground, setOverlayBackground] = useState(null);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
+  const [isIdleVideoVisible, setIsIdleVideoVisible] = useState(true);
   const wrapperRef = useRef(null);
   const conflictTitleWrapRef = useRef(null);
   const dotRefs = useRef({});
@@ -187,6 +190,8 @@ export default function TimelineHistoricoGijon() {
   const lastQueuedBackgroundRef = useRef(ORDERED_HISTORIA[0]?.fondo ?? null);
   const revealTimeoutRef = useRef(null);
   const pendingDotSwitchTimeoutRef = useRef(null);
+  const idleTimeoutRef = useRef(null);
+  const idleVideoRef = useRef(null);
   const lastAutoSigloSwitchAtRef = useRef(0);
   const dragRef = useRef({
     pointerId: null,
@@ -265,6 +270,26 @@ export default function TimelineHistoricoGijon() {
     [timelineScaleFactor, viewportScale],
   );
   const showBandoInfoPanel = isBandoView && (!isMobile || isMobileBandoInfoOpen);
+  const clearIdleTimeout = useCallback(() => {
+    if (idleTimeoutRef.current) {
+      window.clearTimeout(idleTimeoutRef.current);
+      idleTimeoutRef.current = null;
+    }
+  }, []);
+  const scheduleIdleMode = useCallback(() => {
+    clearIdleTimeout();
+    idleTimeoutRef.current = window.setTimeout(() => {
+      setIsIdleVideoVisible(true);
+    }, IDLE_TIMEOUT_MS);
+  }, [clearIdleTimeout]);
+  const exitIdleMode = useCallback(() => {
+    setIsIdleVideoVisible(false);
+    scheduleIdleMode();
+  }, [scheduleIdleMode]);
+  const registerUserActivity = useCallback(() => {
+    if (isIdleVideoVisible) return;
+    scheduleIdleMode();
+  }, [isIdleVideoVisible, scheduleIdleMode]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -273,6 +298,40 @@ export default function TimelineHistoricoGijon() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleActivity = () => registerUserActivity();
+
+    window.addEventListener('pointerdown', handleActivity, { passive: true });
+    window.addEventListener('wheel', handleActivity, { passive: true });
+    window.addEventListener('touchstart', handleActivity, { passive: true });
+    window.addEventListener('keydown', handleActivity);
+
+    if (!isIdleVideoVisible) {
+      scheduleIdleMode();
+    } else {
+      clearIdleTimeout();
+    }
+
+    return () => {
+      window.removeEventListener('pointerdown', handleActivity);
+      window.removeEventListener('wheel', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      clearIdleTimeout();
+    };
+  }, [clearIdleTimeout, isIdleVideoVisible, registerUserActivity, scheduleIdleMode]);
+
+  useEffect(() => {
+    if (!isIdleVideoVisible || !idleVideoRef.current) return;
+    idleVideoRef.current.currentTime = 0;
+    const playPromise = idleVideoRef.current.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {});
+    }
+  }, [isIdleVideoVisible]);
 
   useEffect(() => {
     if (!isBandoView || !isMobile) {
@@ -1445,6 +1504,37 @@ export default function TimelineHistoricoGijon() {
             }}
             onClick={(event) => event.stopPropagation()}
           />
+        </div>
+      )}
+
+      {isIdleVideoVisible && (
+        <div
+          className="timeline-idle-overlay"
+          role="button"
+          tabIndex={0}
+          onPointerDown={exitIdleMode}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              exitIdleMode();
+            }
+          }}
+          aria-label="Iniciar interactivo"
+        >
+          <video
+            ref={idleVideoRef}
+            className="timeline-idle-video"
+            src={introVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+          />
+          <div className="timeline-idle-overlay-content" aria-hidden="true">
+            {'TOCA LA PANTALLA'}
+          </div>
         </div>
       )}
     </div>

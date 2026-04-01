@@ -281,6 +281,76 @@ body {
   animation: timeline-hint-blink 1.2s ease-in-out infinite;
 }
 
+@keyframes timeline-idle-hint-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.025);
+  }
+}
+
+.timeline-idle-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.timeline-idle-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.14) 0%,
+    rgba(0, 0, 0, 0.06) 38%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+}
+
+.timeline-idle-overlay:focus-visible {
+  outline: 3px solid rgba(255, 248, 241, 0.8);
+  outline-offset: -3px;
+}
+
+.timeline-idle-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.timeline-idle-overlay-content {
+  position: absolute;
+  left: 50%;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 248, 241, 0.7);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff8f1;
+  font-size: clamp(0.64rem, 0.5rem + 0.42vw, 0.88rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  animation: timeline-idle-hint-breathe 1.35s ease-in-out infinite;
+}
+
 @keyframes timeline-mannequin-float {
   0%,
   100% {
@@ -403,6 +473,20 @@ body {
   }
 }
 
+@media (orientation: portrait) {
+  .timeline-idle-video {
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .timeline-idle-overlay-content {
+    bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
+    font-size: clamp(0.58rem, 0.42rem + 0.75vw, 0.8rem);
+    letter-spacing: 0.16em;
+    white-space: normal;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -426,6 +510,7 @@ body {
   .timeline-prenda-hotspot-core,
   .timeline-prenda-hotspot-dot,
   .timeline-prenda-hotspot-halo,
+  .timeline-idle-overlay-content,
   .timeline-mannequin-aura,
   .timeline-mannequin-silhouette-shadow,
   .timeline-mannequin-image {
