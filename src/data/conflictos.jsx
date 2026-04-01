@@ -199,7 +199,7 @@ export const HISTORIA = [
       {
         id: "pre-guerra",
         nombre: "Antes de la Guerra",
-        subtitulo: "Soldado Alfonso XIII",
+        subtitulo: "Uniforme 1926",
         posicion: "top",
         descripcionBreve: "Tropas monárquicas con uniformes con galones dorados y boina.",
         detalles: [
@@ -208,7 +208,7 @@ export const HISTORIA = [
         ],
         bandos: [
           {
-            nombre: "Soldado Alfonso XIII",
+            nombre: "Uniforme 1926",
             base: alfonsoXIII,
             descripcion: "Este es el uniforme reglamentario de 1926, que es el que llevaban todos los soldados independientemente de en qué bando se encuadraran al comenzar la Guerra Civil.\n\nBásicamente, el uniforme consta de 4 elementos: pantalón granadero, camisa caqui, guerrera y gorro isabelino, así como un complemento de cuero que eran las cartucheras. Iba acompañado de mantas, abrigos y otros elementos para el frío, y además los rangos más altos llevaban gorras como la de la imagen.",
             alineacion: "left"

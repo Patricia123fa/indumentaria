@@ -580,8 +580,13 @@ export default function TimelineHistoricoGijon() {
       currentCenturyLeft + centuryRect.width / 2 - container.clientWidth * clampedFocusRatio;
     const maxScrollLeft = Math.max(0, container.scrollWidth - container.clientWidth);
     const targetLeft = Math.max(0, Math.min(centeredTarget, maxScrollLeft));
+    const shouldReduceMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const resolvedBehavior = behavior === 'smooth' && shouldReduceMotion ? 'auto' : behavior;
 
-    container.scrollTo({ left: targetLeft, behavior });
+    container.scrollTo({ left: targetLeft, behavior: resolvedBehavior });
   }, []);
 
   const handleSigloClick = useCallback((index) => {

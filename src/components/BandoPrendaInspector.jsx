@@ -234,7 +234,7 @@ export default function BandoPrendaInspector({
         <div
           key={`arrow-screen-${arrowGeometry.key}`}
           aria-hidden="true"
-          className="pointer-events-none fixed z-[55] select-none timeline-prenda-arrow-sticker-shell"
+          className="pointer-events-none fixed z-55 select-none timeline-prenda-arrow-sticker-shell"
           style={{
             left: `${arrowGeometry.left}px`,
             top: `${arrowGeometry.top}px`,
@@ -343,7 +343,7 @@ export default function BandoPrendaInspector({
           ref={panelRef}
           src={activeHotspotImage}
           alt={activeHotspot?.label ?? activeHotspot?.nombre ?? 'Prenda'}
-          className="fixed z-[56] pointer-events-none object-contain timeline-prenda-sticker"
+          className="fixed z-56 pointer-events-none object-contain timeline-prenda-sticker"
           onError={() => setActiveImageHasError(true)}
           style={{
             left: isMobile ? '50%' : 'auto',

@@ -402,3 +402,33 @@ body {
     filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.44));
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .timeline-click-halo,
+  .timeline-dot-core,
+  .timeline-swipe-hint,
+  .timeline-prenda-arrow-path,
+  .timeline-prenda-arrow-head,
+  .timeline-prenda-arrow-sticker,
+  .timeline-prenda-sticker,
+  .timeline-prenda-hotspot-wave,
+  .timeline-prenda-hotspot-core,
+  .timeline-prenda-hotspot-dot,
+  .timeline-prenda-hotspot-halo,
+  .timeline-mannequin-aura,
+  .timeline-mannequin-silhouette-shadow,
+  .timeline-mannequin-image {
+    animation: none !important;
+  }
+}
