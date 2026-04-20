@@ -55,6 +55,29 @@ body {
   background-attachment: fixed;
 }
 
+.timeline-proyectotecnico-badge {
+  position: fixed;
+  top: max(1.7rem, env(safe-area-inset-top));
+  left: max(1.7rem, env(safe-area-inset-left));
+  z-index: 95;
+  width: clamp(76px, 10vw, 160px);
+  height: auto;
+  max-height: min(14vh, 128px);
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  filter: brightness(0) saturate(100%) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.28));
+}
+
+@media (max-width: 560px) {
+  .timeline-proyectotecnico-badge {
+    width: clamp(64px, 18vw, 112px);
+    max-height: 10vh;
+    top: max(1.2rem, env(safe-area-inset-top));
+    left: max(1.2rem, env(safe-area-inset-left));
+  }
+}
+
 .timeline-scroll {
   scrollbar-width: none;
   -ms-overflow-style: none;

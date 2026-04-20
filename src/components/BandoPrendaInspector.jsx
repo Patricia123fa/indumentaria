@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import flechaA from '../assets/flechas/flecha_nueva_1.png';
-import flechaB from '../assets/flechas/flecha_nueva_2.png';
-import flechaC from '../assets/flechas/flecha_nueva_3.png';
+import flechaA from '../assets/flechas/flecha_nueva_1.avif';
+import flechaB from '../assets/flechas/flecha_nueva_2.avif';
+import flechaC from '../assets/flechas/flecha_nueva_3.avif';
 
 const getHotspotImage = (hotspot) =>
   hotspot?.imagen ?? hotspot?.image ?? hotspot?.prendaImagen ?? hotspot?.asset ?? null;
@@ -30,6 +30,27 @@ const parseRatio = (value, fallback) => {
   const asPercent = parsePercent(value);
   if (asPercent === null) return fallback;
   return Math.max(0, Math.min(1, asPercent / 100));
+};
+
+const hexToRgba = (hex, alpha) => {
+  const value = hex?.replace('#', '');
+  if (!value) return `rgba(143, 92, 59, ${alpha})`;
+
+  const normalized =
+    value.length === 3
+      ? value
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : value;
+
+  const intValue = Number.parseInt(normalized, 16);
+  if (Number.isNaN(intValue)) return `rgba(143, 92, 59, ${alpha})`;
+
+  const r = (intValue >> 16) & 255;
+  const g = (intValue >> 8) & 255;
+  const b = intValue & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 const ARROW_STICKERS = [
@@ -64,6 +85,7 @@ export default function BandoPrendaInspector({
   bandoName,
   hotspots,
   showArrows = true,
+  accentColor = '#7b8465',
   isMobile = false,
   viewportScale = 1,
 }) {
@@ -308,7 +330,7 @@ export default function BandoPrendaInspector({
                   width: `${hotspotSizePx}px`,
                   height: `${hotspotSizePx}px`,
                   backgroundColor: 'transparent',
-                  borderColor: 'transparent',
+                  border: '2px solid rgba(255,255,255,0.92)',
                   boxShadow: 'none',
                 }}
                 aria-label={hotspotLabel}
@@ -338,6 +360,60 @@ export default function BandoPrendaInspector({
         })}
       </div>
 
+      {activeHotspot && (
+        <div
+          className="fixed z-56 pointer-events-none p-3 rounded-none border"
+          style={{
+            right: '0px',
+            width: '550px',
+            bottom: `${Math.max(50, Math.round(80 * viewportScale))}px`,
+            minHeight: `${Math.max(150, Math.round(200 * viewportScale))}px`,
+            background: `linear-gradient(180deg, ${hexToRgba(accentColor, 0.66)} 0%, ${hexToRgba(accentColor, 0.58)} 100%)`,
+            borderColor: hexToRgba(accentColor, 0.9),
+            borderWidth: '1px',
+            borderLeft: 'none',
+            borderRight: 'none',
+            backdropFilter: 'blur(6px) saturate(108%)',
+            WebkitBackdropFilter: 'blur(6px) saturate(108%)',
+            boxShadow: `0 0 0 1px ${hexToRgba(accentColor, 0.2)}, 0 4px 10px rgba(0, 0, 0, 0.24)`,
+          }}
+        >
+          <p
+            className="font-black uppercase"
+            style={{
+              fontSize: `${((isMobile ? 1.2 : 1.8) * viewportScale).toFixed(3)}rem`,
+              lineHeight: 1.02,
+              letterSpacing: '0.08em',
+              marginTop: '-24px',
+              color: '#000',
+              WebkitTextStroke: '0.3px #000',
+              textShadow: '0 4px 12px rgba(0, 0, 0, 0.28)',
+              whiteSpace: 'normal',
+              textWrap: 'balance',
+              position: 'relative',
+            }}
+          >
+            {activeHotspot?.label || activeHotspot?.nombre}
+          </p>
+          <p
+            style={{
+              fontSize: `${((isMobile ? 0.7 : 0.8) * viewportScale).toFixed(3)}rem`,
+              lineHeight: 1.4,
+              fontFamily: '"Mulish", sans-serif',
+              fontWeight: 600,
+              color: '#000',
+              textTransform: 'none',
+              whiteSpace: 'pre-line',
+              textWrap: 'pretty',
+              textShadow: 'none',
+              marginTop: '18px',
+            }}
+          >
+            {activeHotspot?.detalle}
+          </p>
+        </div>
+      )}
+
       {activeHotspot && activeHotspotImage && !activeImageHasError && (
         <img
           ref={panelRef}
@@ -347,8 +423,8 @@ export default function BandoPrendaInspector({
           onError={() => setActiveImageHasError(true)}
           style={{
             left: isMobile ? '50%' : 'auto',
-            right: isMobile ? 'auto' : `${Math.max(14, Math.round(22 * viewportScale))}px`,
-            top: isMobile ? 'auto' : '50%',
+            right: isMobile ? 'auto' : `${Math.max(14, Math.round(150 * viewportScale))}px`,
+            top: isMobile ? 'auto' : '40%',
             bottom: isMobile ? `${Math.max(16, Math.round(20 * viewportScale))}px` : 'auto',
             transform: isMobile ? 'translateX(-50%)' : 'translateY(-50%)',
             width: `${floatingImageWidthPx}px`,

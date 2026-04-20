@@ -1,11 +1,12 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HISTORIA } from '../data/conflictos';
 import BandoPrendaInspector from './BandoPrendaInspector';
-import terciosImage from '../assets/tercios.jpg';
-import sxviiiImage from '../assets/sxviii.jpg';
-import sxixImage from '../assets/Sxix.jpg';
-import sxxImage from '../assets/sxx.jpg';
+import terciosImage from '../assets/tercios.avif';
+import sxviiiImage from '../assets/sxviii.avif';
+import sxixImage from '../assets/Sxix.avif';
+import sxxImage from '../assets/sxx.avif';
 import introVideo from '../assets/video/PANTALLA CARGA BATERIA ALTA (2).mp4';
+import proyectoTecnicoImage from '../assets/PROYECTOTECNICO.avif';
 
 const romanLabel = (siglo) => siglo.replace(/^S\.?\s*/i, '').trim();
 const getImageTitle = (imagePath, fallback = '') => {
@@ -30,8 +31,8 @@ const CIRCLE_SIZES = [214, 198, 226, 208];
 const CONNECTOR_LENGTHS = [170, 150, 185, 165];
 const BASE_CONFLICT_CONNECTOR = 178;
 const BANDO_STACK_SPACING = 44;
-const CONFLICT_NODE_WIDTH = 300;
-const SINGLE_CONFLICT_EXTRA_WIDTH = 110;
+const CONFLICT_NODE_WIDTH = 356;
+const SINGLE_CONFLICT_EXTRA_WIDTH = 146;
 const CONFLICT_CONNECTOR_LENGTH_OVERRIDES = {
   'defensa-gijon': 192,
   sucesion: 232,
@@ -45,6 +46,9 @@ const CONFLICT_CONNECTOR_LENGTH_OVERRIDES = {
 const CONFLICT_BANDO_DISTANCE_OFFSETS = {
   carlistas: [-18, 0],
   'guerra-civil': [-18, 0],
+};
+const CONFLICT_BANDO_SPACING_OVERRIDES = {
+  independencia: 78,
 };
 const OPEN_RADIUS_FACTOR = 0.43;
 const CLOSE_RADIUS_FACTOR = 0.48;
@@ -249,6 +253,7 @@ export default function TimelineHistoricoGijon() {
   const isLongBandoDescription = (selectedBandoDescription?.length ?? 0) > 260;
   const selectedBandoName = selectedBando?.nombre ?? 'Bando';
   const isLongBandoTitle = (selectedBandoName?.length ?? 0) > 15;
+  const isCuartoArtilleriaTitle = selectedBandoName === 'Cuarto regimiento de artillería';
   const selectedBandoHotspots = selectedBando?.hotspots ?? activeConflict?.hotspots ?? [];
   const viewportScale = useMemo(() => getViewportScale(viewportWidth), [viewportWidth]);
   const isMobile = viewportWidth <= MOBILE_BREAKPOINT;
@@ -384,7 +389,8 @@ export default function TimelineHistoricoGijon() {
     }
 
     if (nextBackground === currentBaseBackgroundRef.current) {
-      runNextBackgroundTransition();
+      isBackgroundTransitionRunningRef.current = false;
+      lastQueuedBackgroundRef.current = currentBaseBackgroundRef.current;
       return;
     }
 
@@ -402,16 +408,30 @@ export default function TimelineHistoricoGijon() {
       setOverlayBackground(null);
       setOverlayOpacity(0);
       backgroundFadeTimeoutRef.current = null;
-      runNextBackgroundTransition();
+      if (backgroundQueueRef.current.length > 0) {
+        runNextBackgroundTransition();
+      } else {
+        isBackgroundTransitionRunningRef.current = false;
+        lastQueuedBackgroundRef.current = currentBaseBackgroundRef.current;
+      }
     }, BACKGROUND_FADE_MS);
   }, []);
 
   const enqueueBackgroundTransition = useCallback(
     (targetBackground) => {
       if (!targetBackground) return;
+
+      if (
+        targetBackground === currentBaseBackgroundRef.current &&
+        backgroundQueueRef.current.length === 0 &&
+        !isBackgroundTransitionRunningRef.current
+      ) {
+        return;
+      }
+
       if (targetBackground === lastQueuedBackgroundRef.current) return;
 
-      backgroundQueueRef.current.push(targetBackground);
+      backgroundQueueRef.current = [targetBackground];
       lastQueuedBackgroundRef.current = targetBackground;
 
       if (!isBackgroundTransitionRunningRef.current) {
@@ -959,7 +979,9 @@ export default function TimelineHistoricoGijon() {
       Boolean(expandedDotsByKey[entry.key]);
     const bandoCount = Math.max(1, bandos.length);
     const connectorBaseLength = scaleTimelinePx(getConflictConnectorBaseLength(conflict.id, entry.conflictIndex));
-    const bandoSpacing = scaleTimelinePx(BANDO_STACK_SPACING);
+    const bandoSpacing = scaleTimelinePx(
+      CONFLICT_BANDO_SPACING_OVERRIDES[conflict.id] ?? BANDO_STACK_SPACING,
+    );
     const extensionLength = connectorBaseLength + Math.max(0, bandoCount - 1) * bandoSpacing;
     const visibleLength = isExpanded ? extensionLength : 0;
     const bandoOffsets = CONFLICT_BANDO_DISTANCE_OFFSETS[conflict.id] ?? [];
@@ -1388,7 +1410,7 @@ export default function TimelineHistoricoGijon() {
                 className="font-black uppercase"
                 style={{
                   position: 'absolute',
-                  top: '-0.52em',
+                  top: isCuartoArtilleriaTitle ? '-1.3em' : '-0.52em',
                   left: isMobile ? `calc(${scalePx(18)}px + 8%)` : `calc(${scalePx(24)}px + 12%)`,
                   right: `${scalePx(isMobile ? 14 : 24)}px`,
                   transform: 'none',
@@ -1536,6 +1558,15 @@ export default function TimelineHistoricoGijon() {
             {'TOCA LA PANTALLA'}
           </div>
         </div>
+      )}
+
+      {!isIdleVideoVisible && (
+        <img
+          src={proyectoTecnicoImage}
+          alt="Proyecto técnico"
+          className="timeline-proyectotecnico-badge"
+          draggable="false"
+        />
       )}
     </div>
   );
