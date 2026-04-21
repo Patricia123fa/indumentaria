@@ -253,7 +253,11 @@ export default function TimelineHistoricoGijon() {
   const isLongBandoDescription = (selectedBandoDescription?.length ?? 0) > 260;
   const selectedBandoName = selectedBando?.nombre ?? 'Bando';
   const isLongBandoTitle = (selectedBandoName?.length ?? 0) > 15;
+  const isIsabelinosTitle = selectedBandoName === 'Isabelinos';
+  const isSoldadoLineaTitle = selectedBandoName === 'Soldado de Línea';
+  const isSoldado1808Title = selectedBandoName === 'Soldado 1808';
   const isCuartoArtilleriaTitle = selectedBandoName === 'Cuarto regimiento de artillería';
+  const isMilicianosTitle = selectedBandoName === 'Milicianos';
   const selectedBandoHotspots = selectedBando?.hotspots ?? activeConflict?.hotspots ?? [];
   const viewportScale = useMemo(() => getViewportScale(viewportWidth), [viewportWidth]);
   const isMobile = viewportWidth <= MOBILE_BREAKPOINT;
@@ -1345,6 +1349,37 @@ export default function TimelineHistoricoGijon() {
                 accentColor={activeSiglo?.acento ?? '#7b8465'}
                 isMobile={isMobile}
                 viewportScale={viewportScale}
+                mainImageOverlayHotspots={
+                  selectedBando?.overlayHotspots
+                    ?? (selectedBando?.overlayHotspot ? [selectedBando.overlayHotspot] : null)
+                }
+                imageScaleMultiplier={isCuartoArtilleriaTitle ? 2 : 1}
+                mainImageScaleMultiplier={
+                  isCuartoArtilleriaTitle
+                    ? 1.1
+                    : isIsabelinosTitle
+                      ? 1.06
+                      : isSoldado1808Title
+                        ? 1.06
+                        : isSoldadoLineaTitle
+                          ? 1.05
+                          : isMilicianosTitle
+                            ? 1.05
+                            : 1
+                }
+                mainImageOffsetY={
+                  isCuartoArtilleriaTitle
+                    ? '-3%'
+                    : isIsabelinosTitle
+                      ? '-1%'
+                      : isSoldado1808Title
+                        ? '-1%'
+                        : isSoldadoLineaTitle
+                          ? '-1%'
+                          : isMilicianosTitle
+                            ? '-1%'
+                            : '0%'
+                }
               />
             ) : (
               <span className="text-[0.76rem] font-semibold uppercase tracking-[0.3em] text-[#fff8f1] opacity-85">

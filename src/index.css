@@ -245,11 +245,11 @@ body {
 @keyframes timeline-prenda-hotspot-dot-breathe {
   0%,
   100% {
-    transform: translate(-50%, -50%) scale(0.9);
-    opacity: 0.82;
+    transform: translate(-50%, -50%) scale(0.92);
+    opacity: 0.86;
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.08);
+    transform: translate(-50%, -50%) scale(1.04);
     opacity: 1;
   }
 }
@@ -257,37 +257,38 @@ body {
 @keyframes timeline-prenda-hotspot-halo-breathe {
   0%,
   100% {
-    transform: translate(-50%, -50%) scale(0.94);
-    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(0.92);
+    opacity: 0.18;
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.14);
-    opacity: 0.14;
+    transform: translate(-50%, -50%) scale(1.06);
+    opacity: 0.08;
   }
 }
 
 .timeline-prenda-hotspot-dot {
-  background: rgba(0, 0, 0, 0.84);
-  filter: blur(0.3px);
-  box-shadow: 0 0 7px rgba(0, 0, 0, 0.45);
-  animation: timeline-prenda-hotspot-dot-breathe 1.15s ease-in-out infinite;
+  background: rgba(0, 0, 0, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.34);
+  animation: timeline-prenda-hotspot-dot-breathe 1.25s ease-in-out infinite;
   will-change: transform, opacity;
 }
 
 .timeline-prenda-hotspot-dot-active {
-  background: rgba(0, 0, 0, 0.95);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.58);
+  background: rgba(0, 0, 0, 0.98);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.96), 0 0 8px rgba(0, 0, 0, 0.46);
 }
 
 .timeline-prenda-hotspot-halo {
-  background: rgba(0, 0, 0, 0.26);
-  filter: blur(2.4px);
-  animation: timeline-prenda-hotspot-halo-breathe 1.15s ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  filter: blur(0.9px);
+  animation: timeline-prenda-hotspot-halo-breathe 1.4s ease-in-out infinite;
   will-change: transform, opacity;
 }
 
 .timeline-prenda-hotspot-halo-active {
-  background: rgba(0, 0, 0, 0.34);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 @keyframes timeline-hint-blink {
@@ -450,6 +451,24 @@ body {
   animation: timeline-mannequin-shadow-drift 8.5s ease-in-out infinite;
 }
 
+.timeline-mannequin-image-shell {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.timeline-mannequin-image-float-layer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 58%;
+  animation: timeline-mannequin-float 8.5s ease-in-out infinite;
+  will-change: transform;
+}
+
 .timeline-mannequin-image {
   position: relative;
   z-index: 2;
@@ -458,7 +477,94 @@ body {
   object-fit: contain;
   transform-origin: 50% 58%;
   filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.5));
-  animation: timeline-mannequin-float 8.5s ease-in-out infinite;
+}
+
+.timeline-mannequin-overlay-outline {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 58%;
+  pointer-events: none;
+  mix-blend-mode: normal;
+  filter:
+    brightness(0)
+    saturate(0)
+    opacity(1)
+    drop-shadow(0 0 1px rgba(255, 255, 255, 0.92))
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.5))
+    drop-shadow(0 0 6px rgba(255, 255, 255, 0.18));
+  transform: scale(1.018);
+  animation: timeline-mannequin-overlay-blink 2.35s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.timeline-mannequin-overlay-image {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 58%;
+  pointer-events: none;
+  mix-blend-mode: normal;
+  filter:
+    drop-shadow(0 0 4px rgba(255, 255, 255, 0.24))
+    drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
+  opacity: 0.99;
+  animation: timeline-mannequin-overlay-blink 2.35s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.timeline-mannequin-overlay-image-active {
+  filter:
+    drop-shadow(0 0 6px rgba(255, 255, 255, 0.34))
+    drop-shadow(0 0 14px rgba(255, 255, 255, 0.18));
+  opacity: 1;
+  animation-duration: 1.7s;
+}
+
+.timeline-mannequin-overlay-hotspot {
+  position: absolute;
+  z-index: 5;
+  display: block;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  appearance: none;
+  -webkit-appearance: none;
+  animation: timeline-mannequin-overlay-hotspot-breathe 1.5s ease-in-out infinite;
+}
+
+.timeline-mannequin-overlay-hotspot-active {
+  animation-duration: 1.05s;
+}
+
+@keyframes timeline-mannequin-overlay-hotspot-breathe {
+  0%,
+  100% {
+    opacity: 0.88;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes timeline-mannequin-overlay-blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 960px) {
@@ -473,6 +579,7 @@ body {
     inset: 18% 18% 16% 18%;
     filter: blur(10px);
   }
+
 }
 
 @media (max-width: 560px) {
@@ -494,6 +601,7 @@ body {
   .timeline-mannequin-image {
     filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.44));
   }
+
 }
 
 @media (orientation: portrait) {

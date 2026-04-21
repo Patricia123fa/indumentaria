@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import flechaA from '../assets/flechas/flecha_nueva_1.avif';
 import flechaB from '../assets/flechas/flecha_nueva_2.avif';
 import flechaC from '../assets/flechas/flecha_nueva_3.avif';
@@ -88,6 +88,12 @@ export default function BandoPrendaInspector({
   accentColor = '#7b8465',
   isMobile = false,
   viewportScale = 1,
+  imageScaleMultiplier = 1,
+  mainImageScaleMultiplier = 1,
+  mainImageOffsetY = '0%',
+  mainImageOverlaySrc = null,
+  mainImageOverlayHotspot = null,
+  mainImageOverlayHotspots = null,
 }) {
   const normalizedHotspots = useMemo(
     () =>
@@ -100,31 +106,61 @@ export default function BandoPrendaInspector({
         })),
     [hotspots],
   );
+  const normalizedOverlayHotspots = useMemo(() => {
+    const overlaySource =
+      mainImageOverlayHotspots ?? (mainImageOverlayHotspot ? [mainImageOverlayHotspot] : []);
+
+    return overlaySource
+      .filter(Boolean)
+      .map((overlayHotspot, index) => ({
+        ...overlayHotspot,
+        key: overlayHotspot.id ?? overlayHotspot.key ?? `__main-image-overlay-hotspot__-${index}`,
+      }));
+  }, [mainImageOverlayHotspots, mainImageOverlayHotspot]);
 
   const [activeHotspotIndex, setActiveHotspotIndex] = useState(null);
+  const [activeOverlayHotspotKey, setActiveOverlayHotspotKey] = useState(null);
+  const [pressedHotspotKey, setPressedHotspotKey] = useState(null);
   const [activeImageHasError, setActiveImageHasError] = useState(false);
   const [arrowGeometry, setArrowGeometry] = useState(null);
   const hotspotRefs = useRef({});
+  const overlayHotspotRefs = useRef({});
   const panelRef = useRef(null);
   const arrowRafRef = useRef(null);
 
   useEffect(() => {
     setActiveHotspotIndex(null);
-  }, [bandoName, imageSrc, normalizedHotspots.length]);
+    setActiveOverlayHotspotKey(null);
+  }, [bandoName, imageSrc, normalizedHotspots.length, normalizedOverlayHotspots.length]);
 
-  const activeHotspot =
+  const activeMarkerHotspot =
     activeHotspotIndex === null ? null : normalizedHotspots[activeHotspotIndex] ?? null;
+  const activeOverlayHotspot =
+    activeOverlayHotspotKey === null
+      ? null
+      : normalizedOverlayHotspots.find((hotspot) => hotspot.key === activeOverlayHotspotKey) ?? null;
+  const activeHotspot = activeOverlayHotspot ?? activeMarkerHotspot;
   const activeHotspotImage = getHotspotImage(activeHotspot);
+  const activeHotspotImageScaleMultiplier = activeHotspot?.imageScaleMultiplier ?? 1;
+  const overlayOutlineFilterId = 'timeline-mannequin-overlay-outline-filter';
 
   const updateArrow = useCallback(() => {
-    if (!showArrows || isMobile || activeHotspotIndex === null) {
+    if (!showArrows || isMobile || (activeHotspotIndex === null && !activeOverlayHotspotKey)) {
       setArrowGeometry(null);
       return;
     }
 
-    const activeHotspot = normalizedHotspots[activeHotspotIndex] ?? null;
-    const activeHotspotKey = activeHotspot?.key;
-    const hotspotNode = activeHotspotKey ? hotspotRefs.current[activeHotspotKey] : null;
+    const activeHotspot = activeOverlayHotspotKey
+      ? normalizedOverlayHotspots.find((hotspot) => hotspot.key === activeOverlayHotspotKey) ?? null
+      : normalizedHotspots[activeHotspotIndex] ?? null;
+    const activeHotspotKey = activeOverlayHotspotKey
+      ? activeOverlayHotspotKey
+      : activeHotspot?.key;
+    const hotspotNode = activeOverlayHotspotKey
+      ? overlayHotspotRefs.current[activeOverlayHotspotKey] ?? null
+      : activeHotspotKey
+        ? hotspotRefs.current[activeHotspotKey]
+        : null;
     const panelNode = panelRef.current;
 
     if (!hotspotNode || !panelNode) {
@@ -155,6 +191,7 @@ export default function BandoPrendaInspector({
     }
 
     const activeLabel = activeHotspot?.label ?? activeHotspot?.nombre ?? '';
+    const isApostlesArrow = /12\s*ap[oó]stoles/i.test(activeLabel);
     const isPantsArrow = /pantalon/i.test(activeLabel);
     const seed = [...activeHotspotKey].reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const stickerIndex = isPantsArrow ? 2 : seed % ARROW_STICKERS.length;
@@ -173,7 +210,7 @@ export default function BandoPrendaInspector({
     const anchorDy = tipAnchor.y - tailAnchor.y;
     const anchorDistance = Math.hypot(anchorDx, anchorDy) || 1;
     const scale = distance / anchorDistance;
-    const sizeMultiplier = isPantsArrow ? 0.9 : 1;
+    const sizeMultiplier = isApostlesArrow ? 0.82 : isPantsArrow ? 0.9 : 1;
     const finalScale = scale * sizeMultiplier;
     const anchorAngle = Math.atan2(anchorDy, anchorDx);
     const targetAngle = Math.atan2(vy, vx);
@@ -211,7 +248,14 @@ export default function BandoPrendaInspector({
         prev.src === nextGeometry.src;
       return almostSamePosition ? prev : nextGeometry;
     });
-  }, [activeHotspotIndex, isMobile, normalizedHotspots, showArrows]);
+  }, [
+    activeHotspotIndex,
+    activeOverlayHotspotKey,
+    isMobile,
+    normalizedHotspots,
+    normalizedOverlayHotspots,
+    showArrows,
+  ]);
 
   const scheduleArrowUpdate = useCallback(() => {
     if (arrowRafRef.current !== null) return;
@@ -247,8 +291,14 @@ export default function BandoPrendaInspector({
     };
   }, [activeHotspotIndex, scheduleArrowUpdate]);
 
-  const floatingImageWidthPx = Math.max(210, Math.round((isMobile ? 228 : 300) * viewportScale));
-  const floatingImageMaxHeight = `${Math.max(220, Math.round((isMobile ? 280 : 520) * viewportScale))}px`;
+  const floatingImageWidthPx = Math.max(
+    210,
+    Math.round((isMobile ? 228 : 300) * viewportScale * imageScaleMultiplier * activeHotspotImageScaleMultiplier),
+  );
+  const floatingImageMaxHeight = `${Math.max(
+    220,
+    Math.round((isMobile ? 280 : 520) * viewportScale * imageScaleMultiplier * activeHotspotImageScaleMultiplier),
+  )}px`;
 
   return (
     <div className="relative">
@@ -281,24 +331,156 @@ export default function BandoPrendaInspector({
       )}
 
       <div className="timeline-mannequin-stage">
-        <div className="timeline-mannequin-aura" aria-hidden="true" />
-        <img
-          src={imageSrc}
-          alt=""
+        <svg
           aria-hidden="true"
-          className="timeline-mannequin-silhouette-shadow"
-        />
-        <img src={imageSrc} alt={bandoName ?? 'Bando'} className="timeline-mannequin-image" />
+          focusable="false"
+          width="0"
+          height="0"
+          style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
+        >
+          <defs>
+            <filter
+              id={overlayOutlineFilterId}
+              x="-20%"
+              y="-20%"
+              width="140%"
+              height="140%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="dilated" />
+              <feComposite in="dilated" in2="SourceAlpha" operator="out" result="outline" />
+              <feGaussianBlur in="outline" stdDeviation="1.45" result="softOutline" />
+              <feFlood floodColor="#ffffff" floodOpacity="0.88" result="white" />
+              <feComposite in="white" in2="softOutline" operator="in" result="whiteOutline" />
+              <feMerge>
+                <feMergeNode in="whiteOutline" />
+              </feMerge>
+            </filter>
+          </defs>
+        </svg>
+        <div className="timeline-mannequin-aura" aria-hidden="true" />
+        <div
+          className="timeline-mannequin-image-shell"
+          style={{
+            transform: `translateY(${mainImageOffsetY}) scale(${mainImageScaleMultiplier})`,
+          }}
+        >
+          <div className="timeline-mannequin-image-float-layer">
+            <img src={imageSrc} alt={bandoName ?? 'Bando'} className="timeline-mannequin-image" />
+            {normalizedOverlayHotspots.length > 0 ? (
+              normalizedOverlayHotspots.map((overlayHotspot) => {
+                const overlayHotspotImage =
+                  overlayHotspot.overlayImage ?? mainImageOverlaySrc ?? getHotspotImage(overlayHotspot);
+                if (!overlayHotspotImage) return null;
+
+                const overlayHotspotTop =
+                  overlayHotspot.estilo?.top ?? overlayHotspot.style?.top ?? '30%';
+                const overlayHotspotLeft =
+                  overlayHotspot.estilo?.left ?? overlayHotspot.style?.left ?? '62%';
+                const overlayHotspotOffsetY = overlayHotspot.overlayOffsetY ?? '0%';
+                const overlayHitSizePx = Math.max(70, Math.round(78 * viewportScale));
+                const overlayHitArea = overlayHotspot.overlayHit ?? overlayHotspot.hitArea ?? null;
+                const overlayHitTop = overlayHitArea?.top ?? overlayHotspotTop;
+                const overlayHitLeft = overlayHitArea?.left ?? overlayHotspotLeft;
+                const overlayHitWidth = overlayHitArea?.width ?? `${overlayHitSizePx}px`;
+                const overlayHitHeight = overlayHitArea?.height ?? `${overlayHitSizePx}px`;
+                const overlayHitBorderRadius = overlayHitArea?.borderRadius ?? '50%';
+                const overlayHaloSizePx = overlayHitArea?.haloSize ?? Math.max(42, Math.round(46 * viewportScale));
+                const overlayHotspotKey = overlayHotspot.key;
+                const isOverlayActive = activeOverlayHotspotKey === overlayHotspotKey;
+
+                return (
+                  <Fragment key={overlayHotspotKey}>
+                    <img
+                      src={overlayHotspotImage}
+                      alt=""
+                      aria-hidden="true"
+                      className="timeline-mannequin-overlay-outline"
+                      style={{
+                        filter: `url(#${overlayOutlineFilterId})`,
+                        transform: `translateY(${overlayHotspotOffsetY}) scale(1.01)`,
+                      }}
+                    />
+                    <img
+                      src={overlayHotspotImage}
+                      alt=""
+                      aria-hidden="true"
+                      className={`timeline-mannequin-overlay-image ${
+                        isOverlayActive ? 'timeline-mannequin-overlay-image-active' : ''
+                      }`}
+                      style={{
+                        transform: `translateY(${overlayHotspotOffsetY})`,
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className={`timeline-mannequin-overlay-hotspot ${
+                        isOverlayActive ? 'timeline-mannequin-overlay-hotspot-active' : ''
+                      }`}
+                      onClick={() => {
+                        setActiveHotspotIndex(null);
+                        setActiveOverlayHotspotKey((prev) => (prev === overlayHotspotKey ? null : overlayHotspotKey));
+                      }}
+                      onPointerDown={() => setPressedHotspotKey(overlayHotspotKey)}
+                      onPointerUp={() => setPressedHotspotKey(null)}
+                      onPointerCancel={() => setPressedHotspotKey(null)}
+                      onPointerLeave={() => setPressedHotspotKey(null)}
+                    onBlur={() => setPressedHotspotKey(null)}
+                    aria-label={overlayHotspot.label ?? 'Elemento resaltado'}
+                    aria-pressed={isOverlayActive}
+                    title={overlayHotspot.label ?? 'Elemento resaltado'}
+                      ref={(node) => {
+                        if (node) {
+                          overlayHotspotRefs.current[overlayHotspotKey] = node;
+                        } else {
+                          delete overlayHotspotRefs.current[overlayHotspotKey];
+                        }
+                      }}
+                      style={{
+                        top: overlayHitTop,
+                        left: overlayHitLeft,
+                        width: overlayHitWidth,
+                        height: overlayHitHeight,
+                        transform: 'translate(-50%, -50%)',
+                        borderRadius: overlayHitBorderRadius,
+                      }}
+                      >
+                      <span
+                        className={`pointer-events-none absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full timeline-prenda-hotspot-halo ${
+                          isOverlayActive ? 'timeline-prenda-hotspot-halo-active' : ''
+                        }`}
+                        style={{
+                          width: `${overlayHaloSizePx}px`,
+                          height: `${overlayHaloSizePx}px`,
+                        }}
+                      />
+                    </button>
+                  </Fragment>
+                );
+              })
+            ) : mainImageOverlaySrc ? (
+              <img
+                src={mainImageOverlaySrc}
+                alt=""
+                aria-hidden="true"
+                className="timeline-mannequin-overlay-image"
+              />
+            ) : null}
+          </div>
+        </div>
 
         {normalizedHotspots.map((hotspot, index) => {
           const isActive = index === activeHotspotIndex;
+          const isPressed = pressedHotspotKey === hotspot.key;
           const hotspotTop = hotspot?.estilo?.top ?? hotspot?.style?.top ?? '50%';
           const hotspotLeft = hotspot?.estilo?.left ?? hotspot?.style?.left ?? '50%';
           const hotspotLabel = hotspot?.label ?? hotspot?.nombre ?? `Prenda ${index + 1}`;
-          const hotspotSizePx = Math.max(24, Math.round((isMobile ? 26 : 30) * viewportScale));
-          const coreSizePx = Math.max(8, Math.round(hotspotSizePx * 0.42));
+          const hotspotHitSizePx = Math.max(48, Math.round((isMobile ? 48 : 48) * viewportScale));
+          const hotspotVisualSizePx = Math.max(14, Math.round((isMobile ? 16 : 15) * viewportScale));
+          const hotspotHaloSizePx = Math.max(28, Math.round(hotspotVisualSizePx * 2.3));
 
           const toggleHotspot = () => {
+            setActiveOverlayHotspotKey(null);
             setActiveHotspotIndex((prev) => (prev === index ? null : index));
           };
 
@@ -309,6 +491,8 @@ export default function BandoPrendaInspector({
               style={{
                 top: hotspotTop,
                 left: hotspotLeft,
+                width: `${hotspotHitSizePx}px`,
+                height: `${hotspotHitSizePx}px`,
                 transform: 'translate(-50%, -50%)',
               }}
               ref={(node) => {
@@ -322,18 +506,28 @@ export default function BandoPrendaInspector({
               <button
                 type="button"
                 onClick={toggleHotspot}
-                className="absolute rounded-full transition-all duration-200"
+                onPointerDown={() => setPressedHotspotKey(hotspot.key)}
+                onPointerUp={() => setPressedHotspotKey(null)}
+                onPointerCancel={() => setPressedHotspotKey(null)}
+                onPointerLeave={() => setPressedHotspotKey(null)}
+                onBlur={() => setPressedHotspotKey(null)}
+                className="relative block h-full w-full rounded-full"
                 style={{
-                  transform: 'translate(-50%, -50%)',
-                  top: '0px',
-                  left: '0px',
-                  width: `${hotspotSizePx}px`,
-                  height: `${hotspotSizePx}px`,
                   backgroundColor: 'transparent',
-                  border: '2px solid rgba(255,255,255,0.92)',
+                  border: 'none',
+                  padding: 0,
                   boxShadow: 'none',
+                  transform: isPressed ? 'scale(0.92)' : 'scale(1)',
+                  transition: 'transform 140ms ease',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  touchAction: 'manipulation',
+                  WebkitTapHighlightColor: 'transparent',
+                  userSelect: 'none',
+                  cursor: 'pointer',
                 }}
                 aria-label={hotspotLabel}
+                aria-pressed={isActive}
                 title={hotspotLabel}
               >
                 <span
@@ -341,8 +535,8 @@ export default function BandoPrendaInspector({
                     isActive ? 'timeline-prenda-hotspot-halo-active' : ''
                   }`}
                   style={{
-                    width: `${hotspotSizePx}px`,
-                    height: `${hotspotSizePx}px`,
+                    width: `${hotspotHaloSizePx}px`,
+                    height: `${hotspotHaloSizePx}px`,
                   }}
                 />
                 <span
@@ -350,8 +544,8 @@ export default function BandoPrendaInspector({
                     isActive ? 'timeline-prenda-hotspot-dot-active' : ''
                   }`}
                   style={{
-                    width: `${coreSizePx}px`,
-                    height: `${coreSizePx}px`,
+                    width: `${hotspotVisualSizePx}px`,
+                    height: `${hotspotVisualSizePx}px`,
                   }}
                 />
               </button>
@@ -381,10 +575,11 @@ export default function BandoPrendaInspector({
           <p
             className="font-black uppercase"
             style={{
-              fontSize: `${((isMobile ? 1.2 : 1.8) * viewportScale).toFixed(3)}rem`,
-              lineHeight: 1.02,
+              fontSize: `${((isMobile ? 1.35 : 2.05) * viewportScale).toFixed(3)}rem`,
+              lineHeight: 1.08,
               letterSpacing: '0.08em',
               marginTop: '-24px',
+              marginBottom: '10px',
               color: '#000',
               WebkitTextStroke: '0.3px #000',
               textShadow: '0 4px 12px rgba(0, 0, 0, 0.28)',
@@ -395,22 +590,25 @@ export default function BandoPrendaInspector({
           >
             {activeHotspot?.label || activeHotspot?.nombre}
           </p>
-          <p
-            style={{
-              fontSize: `${((isMobile ? 0.7 : 0.8) * viewportScale).toFixed(3)}rem`,
-              lineHeight: 1.4,
-              fontFamily: '"Mulish", sans-serif',
-              fontWeight: 600,
-              color: '#000',
-              textTransform: 'none',
-              whiteSpace: 'pre-line',
-              textWrap: 'pretty',
-              textShadow: 'none',
-              marginTop: '18px',
-            }}
-          >
-            {activeHotspot?.detalle}
-          </p>
+          <div style={{ marginTop: '38px' }}>
+            <p
+              style={{
+                fontSize: `${((isMobile ? 0.82 : 0.95) * viewportScale).toFixed(3)}rem`,
+                lineHeight: 1.6,
+                fontFamily: '"Mulish", sans-serif',
+                fontWeight: 600,
+                color: '#000',
+                textTransform: 'none',
+                whiteSpace: 'pre-line',
+                textWrap: 'pretty',
+                textShadow: 'none',
+                marginTop: 0,
+                letterSpacing: '0.01em',
+              }}
+            >
+              {activeHotspot?.detalle}
+            </p>
+          </div>
         </div>
       )}
 
