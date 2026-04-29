@@ -3,73 +3,88 @@ import fondo3 from '../assets/fondo3.avif';
 import fondo4 from '../assets/fondo4.avif';
 import fondo5 from '../assets/fondo5.avif';
 import carlista from '../assets/Carlista2.avif';
-import isabelino from '../assets/isabelino.png';
-import nacionalCopia from '../assets/nacional copia (1).png';
-import miliciana2 from '../assets/miliciana_2.png';
-import miliciasUrbanas from '../assets/SXVII_2 copia (1).png';
+import isabelino from '../assets/isabelino.webp';
+import uniforme1926Base from '../assets/1926.webp';
+import miliciana2 from '../assets/miliciana_2 copia.webp';
+import miliciasUrbanas from '../assets/SXVII_2 copia (1).webp';
 import Rayadillo_34 from '../assets/Rayadillo_3.avif';
-import republicanoSxx from '../assets/segunda republica (1).png';
-import soldado_1808 from '../assets/soldado_1808.png';
+import republicanoSxx from '../assets/segunda republica (1).webp';
+import soldado_1808 from '../assets/soldado_1808.webp';
 import soldado_Linea2 from '../assets/Soldado_Linea2.avif';
-import sublevadoSxx from '../assets/soldado infanteria-verano (1).png';
-import guerraHispanoAmericana from '../assets/guerra hispano-americana.png';
-import regimiento4 from '../assets/4regimiento.png';
-import cuartoPluma from '../assets/prendas_4Artilleria/pluma.png';
-import cuartoPlumaFragmento from '../assets/prendas_4Artilleria/plumon_fragmento.png';
-import cuartoChaleco from '../assets/prendas_4Artilleria/chaleco-detalle.png';
-import cuartoChalecoFragmento from '../assets/prendas_4Artilleria/chaleco_fragmento.png';
-import cuartoPantalon from '../assets/prendas_4Artilleria/Detalle pantalón.png';
-import cuartoPantalonFragmento from '../assets/prendas_4Artilleria/pantalon_fragmento (1).png';
-import soldado1808Botones from '../assets/prendas_1808/botones.png';
-import soldado1808BotonesFragmento from '../assets/prendas_1808/botones_cacho.png';
-import soldado1808Camisa from '../assets/prendas_1808/camisa copia.png';
-import soldado1808CamisaFragmento from '../assets/prendas_1808/camisa_cacho.png';
-import soldado1808Panuelo from '../assets/prendas_1808/pañuelo negro.png';
-import soldado1808PanueloFragmento from '../assets/prendas_1808/pañuelo_cacho (1).png';
-import isabelinoGorro from '../assets/prendas_isabelinos/gorro.png';
-import isabelinoGorroCacho from '../assets/prendas_isabelinos/isabelain_fragmento gorro.png';
-import isabelinoPenacho from '../assets/prendas_isabelinos/penacho.png';
-import isabelinoPenachoCacho from '../assets/prendas_isabelinos/isabelain_fragmento pomponete.png';
-import isabelinoFlecos from '../assets/prendas_isabelinos/flecos traje.png';
-import isabelinoHombreraCacho from '../assets/prendas_isabelinos/isabelain-hombrera cacho.png';
-import carlistaBoina from '../assets/prendas_carlistas/boina carlista.png';
-import carlistaBoinaCacho from '../assets/prendas_carlistas/gorro_carlista_cacho.png';
-import carlistaAlpargates from '../assets/prendas_carlistas/alpargates carlistas.png';
-import carlistaAlpargatesCacho from '../assets/prendas_carlistas/alpargatas_carlistas_cacho.png';
-import prendaCamisa from '../assets/prendas_miliciasUrbanas/Camisa.png';
-import prendaBandaRoja from '../assets/prendas_miliciasUrbanas/Banda_roja.png';
-import apostolesCacho from '../assets/apostoles_cacho.png';
-import apostolesDetalle from '../assets/prendas_miliciasUrbanas/12 apostoles copia.png';
+import sublevadoSxx from '../assets/soldado infanteria-verano (1).webp';
+import guerraHispanoAmericana from '../assets/guerra hispano-americana.webp';
+import regimiento4 from '../assets/4regimiento.webp';
+import cuartoPluma from '../assets/prendas_4Artilleria/pluma.webp';
+import cuartoPlumaFragmento from '../assets/prendas_4Artilleria/plumon_fragmento.webp';
+import cuartoChaleco from '../assets/prendas_4Artilleria/chaleco-detalle.webp';
+import cuartoChalecoFragmento from '../assets/prendas_4Artilleria/chaleco_fragmento.webp';
+import cuartoPantalon from '../assets/prendas_4Artilleria/Detalle pantalón.webp';
+import cuartoPantalonFragmento from '../assets/prendas_4Artilleria/pantalon_fragmento (1).webp';
+import soldado1808Botones from '../assets/prendas_1808/botones.webp';
+import soldado1808BotonesFragmento from '../assets/prendas_1808/botones_cacho.webp';
+import soldado1808Camisa from '../assets/prendas_1808/camisa copia.webp';
+import soldado1808CamisaFragmento from '../assets/prendas_1808/camisa_cacho.webp';
+import soldado1808Panuelo from '../assets/prendas_1808/pañuelo negro.webp';
+import soldado1808PanueloFragmento from '../assets/prendas_1808/pañuelo_cacho (1).webp';
+import soldado1808GorroFragmento from '../assets/prendas_1808/Sketch_fragmento gorro.webp';
+import isabelinoGorro from '../assets/prendas_isabelinos/gorro.webp';
+import isabelinoGorroCacho from '../assets/prendas_isabelinos/isabelain_fragmento gorro.webp';
+import isabelinoPenacho from '../assets/prendas_isabelinos/penacho.webp';
+import isabelinoPenachoCacho from '../assets/prendas_isabelinos/isabelain_fragmento pomponete.webp';
+import isabelinoFlecos from '../assets/prendas_isabelinos/flecos traje.webp';
+import isabelinoHombreraCacho from '../assets/prendas_isabelinos/isabelain-hombrera cacho.webp';
+import carlistaBoina from '../assets/prendas_carlistas/boina carlista.webp';
+import carlistaBoinaCacho from '../assets/prendas_carlistas/gorro_carlista_cacho.webp';
+import carlistaAlpargates from '../assets/prendas_carlistas/alpargates carlistas.webp';
+import carlistaAlpargatesCacho from '../assets/prendas_carlistas/alpargatas_carlistas_cacho.webp';
+import prendaCamisa from '../assets/prendas_miliciasUrbanas/Camisa.webp';
+import prendaBandaRoja from '../assets/prendas_miliciasUrbanas/Banda_roja.webp';
+import apostolesCacho from '../assets/apostoles_cacho.webp';
+import apostolesDetalle from '../assets/prendas_miliciasUrbanas/12 apostoles copia.webp';
 import capaBrazalete from '../assets/capa brazalete-lite.webp';
-import fragmentoCamisa from '../assets/fragmento_camisa.png';
-import soldadoLineaGorro from '../assets/prendas_SoldadoLinea/sombrero (1).png';
-import soldadoLineaGorroCacho from '../assets/prendas_SoldadoLinea/gorrete_cacho (1).png';
-import soldadoLineaPierna from '../assets/prendas_SoldadoLinea/cachito de pierna.png';
-import soldadoLineaPiernaDetalle from '../assets/prendas_SoldadoLinea/trozo de paño.png';
-import soldadoLineaZapatos from '../assets/prendas_SoldadoLinea/zapatos (2).png';
-import soldadoLineaZapatosCacho from '../assets/prendas_SoldadoLinea/zapatos_cacho (1).png';
-import estandarGorretuFragmento from '../assets/prendas_estandar/gorretu-fragmento.png';
-import estandarGorrilloBotones from '../assets/prendas_estandar/Gorrillo botones.png';
-import estandarPantalonCacho from '../assets/prendas_estandar/pantalon_cacho.png';
-import estandarPantalonDetalle from '../assets/prendas_estandar/panatlón.png';
-import rayadilloCuellosFragmento from '../assets/prendas_rayadillo/Rayadillo_cuellos-fragmento.png';
-import rayadilloGorroFragmento from '../assets/prendas_rayadillo/Rayadillo_gorro-fragmento.png';
-import rayadilloMangasFragmento from '../assets/prendas_rayadillo/Rayadillo_mangas-fragmento.png';
-import rayadilloCuellosDetalle from '../assets/prendas_rayadillo/cuellos rayadillo.png';
-import rayadilloGorroDetalle from '../assets/prendas_rayadillo/gorro rayadillo.png';
-import rayadilloMangaDetalle from '../assets/prendas_rayadillo/manga rayadillo.png';
-import republicaGorra from '../assets/prendas_republica/gorra.png';
-import republicaBoticas from '../assets/prendas_republica/boticas.png';
-import republicaPantalones from '../assets/prendas_republica/pantalones_2.png';
-import republicaGorraCacho from '../assets/prendas_republica/segunda republica-cacho (1).png';
-import republicaBoticasCacho from '../assets/prendas_republica/segunda republica botas fragmento.png';
-import republicaPantalonesCacho from '../assets/prendas_republica/segunda republica_cacho pantalon.png';
-import milicianaUniforme from '../assets/prendas_milicianas/miliciana_uniforme.png';
-import milicianaUniformeCacho from '../assets/prendas_milicianas/miliciana_uniforme-cacho.png';
-import milicianaCalzado from '../assets/prendas_milicianas/miliciana_calzado.png';
-import milicianaCalzadoCacho from '../assets/prendas_milicianas/miliciana_calzado-cacho.png';
-import milicianaGorro from '../assets/prendas_milicianas/miliciana-gorro (1).png';
-import milicianaGorroCacho from '../assets/prendas_milicianas/miliciana_gorro cacho (1).png';
+import fragmentoCamisa from '../assets/fragmento_camisa.webp';
+import soldadoLineaGorro from '../assets/prendas_SoldadoLinea/sombrero (1).webp';
+import soldadoLineaGorroCacho from '../assets/prendas_SoldadoLinea/gorrete_cacho (1).webp';
+import soldadoLineaPierna from '../assets/prendas_SoldadoLinea/cachito de pierna.webp';
+import soldadoLineaPiernaDetalle from '../assets/prendas_SoldadoLinea/trozo de paño.webp';
+import soldadoLineaZapatos from '../assets/prendas_SoldadoLinea/zapatos (2).webp';
+import soldadoLineaZapatosCacho from '../assets/prendas_SoldadoLinea/zapatos_cacho (1).webp';
+import estandarGorretuFragmento from '../assets/prendas_estandar/gorretu-fragmento.webp';
+import estandarGorrilloBotones from '../assets/prendas_estandar/Gorrillo botones.webp';
+import estandarComposicionGorrillos from '../assets/prendas_estandar/composicion-gorrillos.webp';
+import uniforme1926BoinaFragmento from '../assets/prendas_26/1926-boina.webp';
+import uniforme1926GuerreraFragmento from '../assets/prendas_26/1926-guerrera.webp';
+import uniforme1926VendasFragmento from '../assets/prendas_26/1926-vendas.webp';
+import uniforme1926BoinucaDetalle from '../assets/prendas_26/boinuca.webp';
+import uniforme1926ChaquetaDetalle from '../assets/prendas_26/chaqueta 1926.webp';
+import uniforme1926VendasDetalle from '../assets/prendas_26/vendas (1).webp';
+import estandarPantalonCacho from '../assets/prendas_estandar/pantalon_cacho.webp';
+import estandarPantalonDetalle from '../assets/prendas_estandar/panatlón.webp';
+import rayadilloCuellosFragmento from '../assets/prendas_rayadillo/Rayadillo_cuellos-fragmento.webp';
+import rayadilloGorroFragmento from '../assets/prendas_rayadillo/Rayadillo_gorro-fragmento.webp';
+import rayadilloMangasFragmento from '../assets/prendas_rayadillo/Rayadillo_mangas-fragmento.webp';
+import rayadilloCuellosDetalle from '../assets/prendas_rayadillo/cuellos rayadillo.webp';
+import rayadilloGorrosDetalle from '../assets/prendas_rayadillo/gorros rayadillo.webp';
+import rayadilloMangaDetalle from '../assets/prendas_rayadillo/manga rayadillo.webp';
+import republicaGorra from '../assets/prendas_republica/gorra.webp';
+import republicaBoticas from '../assets/prendas_republica/boticas.webp';
+import republicaPantalones from '../assets/prendas_republica/pantalones_2.webp';
+import republicaGorraCacho from '../assets/prendas_republica/segunda republica-cacho (1).webp';
+import republicaBoticasCacho from '../assets/prendas_republica/segunda republica botas fragmento.webp';
+import republicaPantalonesCacho from '../assets/prendas_republica/segunda republica_cacho pantalon.webp';
+import republicaTenienteGorro from '../assets/prendas_republica/teniente republica_gorro.webp';
+import monoMiliciana from '../assets/prendas_milicianas/mono_miliciana.webp';
+import milicianaCalzado from '../assets/prendas_milicianas/miliciana_calzado.webp';
+import milicianaCascoTrubia from '../assets/prendas_milicianas/casco-trubia.webp';
+import milicianaCascoFragmento from '../assets/prendas_milicianas/miliciana_casco fragmento.webp';
+import milicianaMonoFragmento from '../assets/prendas_milicianas/miliciana_mono fragmento (1).webp';
+import milicianaZapatosFragmento from '../assets/prendas_milicianas/miliciana_fragmento zapatos.webp';
+import sublevadoGorroFragmento from '../assets/prendas_sublevado/soldado sublevado_gorretu.webp';
+import sublevadoCartucherasFragmento from '../assets/prendas_sublevado/soldado sublevado_cartucheras.webp';
+import sublevadoCartucherasDetalle from '../assets/prendas_sublevado/cartucheras.webp';
+import sublevadoPantalonesFragmento from '../assets/prendas_sublevado/soldado sublevado_pantalones.webp';
+import sublevadoGorroDetalle from '../assets/prendas_sublevado/gorro_sublevado.webp';
+import sublevadoPantalonesDetalle from '../assets/prendas_sublevado/pantalon copia.webp';
 
 const makeHotspots = (...items) =>
   items.map(([label, detalle, top, left, imagen, extra = {}]) => ({
@@ -129,7 +144,7 @@ export const HISTORIA = [
                 detalle: "Estos frascos contenían la cantidad justa de pólvora necesaria para cada disparo por lo que hacía que las cargas fueran más rápidas que hacerlo desde un cuerno tradicional, que también llevaban para cuando se les acabaran los ‘apóstoles’.",
                 estilo: { top: "30.4%", left: "49.7%" },
                 overlayOffsetY: "0%",
-                imageScaleMultiplier: 2.4,
+                imageScaleMultiplier: 1.03,
                 overlayHit: { top: "17.2%", left: "33.4%", width: "32.7%", height: "26.6%", borderRadius: "50%" },
                 arrowTarget: { x: "23%", y: "60%" },
               }
@@ -224,6 +239,17 @@ export const HISTORIA = [
             descripcion: "Hay un cambio significativo en cuanto a la indumentaria militar a principios de este siglo, ya que a finales del siglo anterior empiezan los cambios. Se eliminó el blanco borbónico y se usaba el paño pardo, al ser más económico y fácil de conseguir en la región. \n\nVestían casaca corta de paño pardo, con líneas en los puños que representaban el rango del militar."
             ,
             overlayHotspots: [
+              {
+                image: soldado_1808,
+                overlayImage: soldado1808GorroFragmento,
+                detailImage: soldado1808GorroFragmento,
+                label: 'Sombrero',
+                detalle: 'El sombrero de copa baja y ala frontal servía para proteger del sol y de la lluvia ligera, además de aportar identidad visual al uniforme de campaña.',
+                estilo: { top: '8.6%', left: '45.8%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.45,
+                overlayHit: { top: '2.2%', left: '34.2%', width: '24.6%', height: '12.2%', borderRadius: '52%' },
+              },
               {
                 image: soldado_1808,
                 overlayImage: soldado1808PanueloFragmento,
@@ -407,12 +433,13 @@ export const HISTORIA = [
               {
                 image: estandarGorrilloBotones,
                 overlayImage: estandarGorretuFragmento,
-                detailImage: estandarGorrilloBotones,
+                detailImage: estandarComposicionGorrillos,
                 label: 'Gorro',
-                detalle: 'El cuello y sus emblemas ayudaban a distinguir funciones y grado.',
+                detalle: ' Estaba confeccionado en tela de paño azul oscuro con vivos en rojo y los detalles de las líneas horizontales. Carecía de visera, y era un gorro blando y ligero, y su uso estaba pensado para la vida en cuartel. Para los desfiles de gala o formación para combate, se usaba el Ros, que tenía un tejido de color grisáceo y visera para porteger los ojos en combate.',
                 estilo: { top: '14.4%', left: '49.8%' },
                 overlayOffsetY: '0%',
-                imageScaleMultiplier: 1.35,
+                imageScaleMultiplier: 2.15,
+                imageOffsetX: '18%',
               },
               {
                 image: estandarPantalonCacho,
@@ -436,29 +463,32 @@ export const HISTORIA = [
               {
                 image: rayadilloGorroFragmento,
                 overlayImage: rayadilloGorroFragmento,
-                detailImage: rayadilloGorroDetalle,
-                label: 'Gorro cuartelero',
-                detalle: 'El tejido rayado era la seña de identidad del uniforme colonial.',
-                estilo: { top: '15%', left: '50%' },
+                detailImage: rayadilloGorrosDetalle,
+                label: 'Gorro',
+                detalle: 'Al igual que en el caso del uniforme de Alfonso XII, en este caso existía el gorro para uso en el cuartel realizado con la misma tela rayada del uniforme. Para las campañas en Cuba o Filipinas, los soldados solían llevar un gorro de paja (llamado jipijapa) que por su ala ancha, protegía del sol y de las temperaturas del caribe y del sudeste asiático, siendo además un material transpirable.',
+                estilo: { top: '15%', left: '56%' },
                 overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.85,
               },
               {
                 image: rayadilloCuellosFragmento,
                 overlayImage: rayadilloCuellosFragmento,
                 detailImage: rayadilloCuellosDetalle,
-                label: 'Cuellos',
-                detalle: 'Una prenda pensada para soportar mejor el calor y la humedad.',
+                label: 'Cuellos con insignia',
+                detalle: ' Los detalles de los cuellos indican la unidad militar a la que pertenecía el soldado, y podían ser de diferentes colores dependiendo de esta. En este caso, las trompetas enrolladas y el color verde son símbolo de la Infantería Ligera, conocida en España como Cazadores. Los botones también iban grabados con el escudo de armas de España.',
                 estilo: { top: '34%', left: '50%' },
                 overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.6,
               },
               {
                 image: rayadilloMangasFragmento,
                 overlayImage: rayadilloMangasFragmento,
                 detailImage: rayadilloMangaDetalle,
                 label: 'Mangas',
-                detalle: 'La parte inferior se aligeraba para mejorar la comodidad en ultramar.',
+                detalle: 'El color verde indica la unidad militar, la Infantería de Línea. Las 3 rayas que podemos ver en el uniforme indican el rango que poseía, siendo estas pertenecientes a un Capitán de Cazadores. Estas mangas también podían llevar unas estrellas bordadas, pero cuando empezaron las guerras estas identificaciones de color y líneas eran una señal de a quién atacar, y muchos acabaron por quitarlo y dejar el rayadillo sin ningún color ni distintivo.',
                 estilo: { top: '56%', left: '49%' },
                 overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.6,
               },
             ],
             hotspots: [],
@@ -474,58 +504,6 @@ export const HISTORIA = [
     fondo: fondo2,
     conflictos: [
       {
-        id: "republica",
-        nombre: "Segunda República",
-        subtitulo: "Soldado Republicano",
-        posicion: "top",
-        descripcionBreve: "Repúblicas reformistas con uniformes nuevos y brigadas urbanas.",
-        detalles: [
-          "Modernización de cadenas de mando y fajines azules.",
-          "Aparición de unidades mixtas con campesinos y obreros."
-        ],
-        bandos: [
-          {
-            nombre: "Soldado Republicano",
-            base: republicanoSxx,
-            descripcion: "El uniforme de la Segunda República se mantiene casi igual, pero con cambios en los símbolos políticos. Se eliminan todas las coronas reales que pudiera llevar el uniforme. Se fue eliminando el uniforme rojo y azul de diario poco a poco para quedarse solo con el caqui.\n\nLos oficiales llevaban gorra de plato, habitualmente sin armar, botas altas y una guerrera de cuatro bolsillos, aunque no fue altamente distribuido por las limitaciones del gobierno en producirlo.",
-            alineacion: "left",
-            overlayHotspots: [
-              {
-                image: republicaGorra,
-                overlayImage: republicaGorraCacho,
-                detailImage: republicaGorra,
-                label: 'Gorra de plato',
-                detalle: 'La gorra de plato sustituye la estética más monárquica por una imagen republicana.',
-                estilo: { top: '14%', left: '50%' },
-                overlayOffsetY: '0%',
-                imageScaleMultiplier: 1.45,
-              },
-              {
-                image: republicaPantalones,
-                overlayImage: republicaPantalonesCacho,
-                detailImage: republicaPantalones,
-                label: 'Pantalones',
-                detalle: 'El pantalón caqui mantenía una silueta sobria y funcional en campaña.',
-                estilo: { top: '67%', left: '50%' },
-                overlayOffsetY: '0%',
-                imageScaleMultiplier: 1.45,
-              },
-              {
-                image: republicaBoticas,
-                overlayImage: republicaBoticasCacho,
-                detailImage: republicaBoticas,
-                label: 'Boticas',
-                detalle: 'El calzado alto reforzaba presencia y funcionalidad en servicio.',
-                estilo: { top: '87%', left: '49%' },
-                overlayOffsetY: '0%',
-                imageScaleMultiplier: 1.45,
-              },
-            ],
-            hotspots: [],
-          }
-        ]
-      },
-      {
         id: "pre-guerra",
         nombre: "Antes de la Guerra",
         subtitulo: "Uniforme 1926",
@@ -538,14 +516,42 @@ export const HISTORIA = [
         bandos: [
           {
             nombre: "Uniforme 1926",
-            base: nacionalCopia,
-            descripcion: "Este es el uniforme reglamentario de 1926, que es el que llevaban todos los soldados independientemente de en qué bando se encuadraran al comenzar la Guerra Civil.\n\nBásicamente, el uniforme consta de 4 elementos: pantalón granadero, camisa caqui, guerrera y gorro isabelino, así como un complemento de cuero que eran las cartucheras. Iba acompañado de mantas, abrigos y otros elementos para el frío, y además los rangos más altos llevaban gorras como la de la imagen.",
+            base: uniforme1926Base,
+            descripcion: "Este es el uniforme reglamentario de 1926, que es el que llevaban todos los soldados independientemente de en qué bando se encuadraran al comenzar la Guerra Civil.\n\nBásicamente, el uniforme consta de varios elementos: pantalón granadero, camisa caqui, guerrera, boinuca (gorro isabelino) y vendas en la parte baja de la pierna. Iba acompañado de mantas, abrigos y otros elementos para el frío, y además los rangos más altos llevaban gorras como la de la imagen.",
             alineacion: "left",
-            hotspots: makeHotspots(
-              ['Gorro isabelino', 'Elemento de cabeza reglamentario, muy reconocible en la imagen.', '15%', '50%', nacionalCopia],
-              ['Guerrera', 'La guerrera define la silueta del uniforme reglamentario de 1926.', '41%', '49%', nacionalCopia],
-              ['Cartucheras', 'El cuero y el equipamiento rematan la dotación del soldado.', '67%', '48%', nacionalCopia],
-            ),
+            overlayHotspots: [
+              {
+                image: uniforme1926BoinaFragmento,
+                overlayImage: uniforme1926BoinaFragmento,
+                detailImage: uniforme1926BoinucaDetalle,
+                label: 'Boina',
+                detalle: 'Fueron muy usadas en esta época porque las fábricas textiles las producían en grandes cantidades, eran de lana, y protegían del frío en invierno y del sol en verano. Además, se podían guardar y doblar y no ocupaban mucho espacio.',
+                estilo: { top: '15%', left: '50%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.35,
+              },
+              {
+                image: uniforme1926GuerreraFragmento,
+                overlayImage: uniforme1926GuerreraFragmento,
+                detailImage: uniforme1926ChaquetaDetalle,
+                label: 'Guerrera',
+                detalle: 'El color caqui fue diseñado en 1926 para fundirse con el color del terreno. Dos bolsillos para tropa, mientras que para oficiales o altos rangos se incorporaron cuatro bolsillos como herramienta de carga donde el soldado podía llevar sus pertenencias sin perderlas, haciendo que esta prenda fuera mucho más práctica que sus predecesoras.',
+                estilo: { top: '41%', left: '49%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.35,
+              },
+              {
+                image: uniforme1926VendasFragmento,
+                overlayImage: uniforme1926VendasFragmento,
+                detailImage: uniforme1926VendasDetalle,
+                label: 'Vendas',
+                detalle: 'Como las botas altas eran caras, la solución fueron vendas o polainas de tela. Eran unas tiras largas de unos 2 metros que el soldado se enrollaba en espiral desde el tobillo hasta debajo de la rodilla. Su función era la de proteger el pantalón de desgarros y evitar que los insectos, el barro o las piedras entrasen en los borceguíes (botas cortas de cuero que solo cubrían el tobillo y eran más baratas de fabricar).',
+                estilo: { top: '67%', left: '48%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.35,
+              },
+            ],
+            hotspots: [],
           }
         ]
       },
@@ -560,37 +566,81 @@ export const HISTORIA = [
           "Milicias populares de Gijón organizaron columnas de emergencia para defender la ciudad junto a obreros ferroviarios y pescadores.",
         bandos: [
           {
+            nombre: "Soldado Republicano",
+            base: republicanoSxx,
+            descripcion: "El uniforme de la Segunda República se mantiene casi igual, pero con cambios en los símbolos políticos. Se eliminan todas las coronas reales que pudiera llevar el uniforme. Se fue eliminando el uniforme rojo y azul de diario poco a poco para quedarse solo con el caqui.\n\nLos oficiales llevaban gorra de plato, habitualmente sin armar, botas altas y una guerrera de cuatro bolsillos, aunque no fue altamente distribuido por las limitaciones del gobierno en producirlo.",
+            alineacion: "left",
+            overlayHotspots: [
+              {
+                image: republicaGorra,
+                overlayImage: republicaGorraCacho,
+                detailImage: republicaTenienteGorro,
+                label: 'Gorra de plato',
+                detalle: 'El detalle más importante de la gorra que vestían los soldados republicanos era la estrella roja de 5 puntas. Con la creación del Ejército Popular Republicano, se decidió eliminar antiguas insignias monárquicas y se adoptó este símbolo, que era unificador de todas las fuerzas leales al gobierno. El castillo es emblema del Arma de Ingenieros y las bandas verticales en este caso pertenecen al rango de Teniente.',
+                estilo: { top: '14%', left: '50%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.45,
+              },
+              {
+                image: republicaPantalones,
+                overlayImage: republicaPantalonesCacho,
+                detailImage: republicaPantalones,
+                label: 'Pantalón',
+                detalle: ' Estos pantalones de montar se llamaban breeches. Eran anchos en los muslos y ajustados en la parte baja de la pierna. Este corte de pantalones resultaba muy cómodo para moverse por el campo y tener libertad de movimiento por lo que era popular en muchos ejércitos de Europa.',
+                estilo: { top: '67%', left: '50%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.45,
+              },
+              {
+                image: republicaBoticas,
+                overlayImage: republicaBoticasCacho,
+                detailImage: republicaBoticas,
+                label: 'Botas altas',
+                detalle: 'Las botas se complementaban perfectamente con el tipo de pantalón que vestían. Permitían un ajuste perfecto para su uso en verano e invierno y evitaban la entrada de agua y barro. Su uso estaba reservado para los mandos, la caballería o motoristas de alcance, siendo un claro símbolo de autoridad.',
+                estilo: { top: '87%', left: '49%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.45,
+              },
+            ],
+            hotspots: [],
+          },
+          {
             nombre: "Milicianos",
             base: miliciana2,
             descripcion: "El uniforme más icónico del miliciano republicano en Gijón no fue el uniforme anterior, sino el mono azul o caqui. La ropa de los obreros convertida en ropa de combate. Los soldados republicanos en Asturias usan el casco Trubia (fabricado aquí mismo, en la Fábrica de Trubia) o el casco checo/soviético que llegaba por el puerto de El Musel.\n\nEran personas de las calles que tomaron los fusiles y después fueron al frente con lo que tenían a mano. Cuando nos referimos a lo que tenían cercano no es solo ropa civil, sino una amalgama de ropas salidas de casas y cuarteles.",
             alineacion: "left",
             overlayHotspots: [
               {
-                image: milicianaGorro,
-                overlayImage: milicianaGorroCacho,
-                detailImage: milicianaGorro,
-                label: 'Gorro',
-                detalle: 'El gorro completaba una indumentaria improvisada, adaptada a la urgencia de la movilización.',
+                image: milicianaCascoTrubia,
+                overlayImage: milicianaCascoFragmento,
+                overlayHitImage: milicianaCascoFragmento,
+                detailImage: milicianaCascoTrubia,
+                label: 'Casco Trubia',
+                detalle: 'Toma su nombre de la Fábrica Nacional de Armas de Trubia. Estaba realizado en acero y su peso era bastante ligero con una protección balística moderada. Su base acampanada protegía del sol formando una pequeña visera y en su interior, tres lengüetas sujetadas por un aro metálico protegían la cabeza para que no tocase el metal.',
                 estilo: { top: '13%', left: '49%' },
                 overlayOffsetY: '0%',
                 imageScaleMultiplier: 1.4,
               },
               {
-                image: milicianaUniforme,
-                overlayImage: milicianaUniformeCacho,
-                detailImage: milicianaUniforme,
+                image: monoMiliciana,
+                overlayImage: milicianaMonoFragmento,
+                overlayHitImage: milicianaMonoFragmento,
+                detailImage: monoMiliciana,
                 label: 'Mono de trabajo',
-                detalle: 'La ropa obrera convertida en uniforme de combate define la imagen de las milicianas.',
+                detalle: ' Era la ropa estándar de la clase obrera en España. Se convirtió en “uniforme de la revolución” y era práctico y barato. Era una prenda holgada y no había “tallas de mujer” por lo que las milicianas se los ceñían con cuerdas o cinturones y enrollaban sus mangas y perneras.',
                 estilo: { top: '46%', left: '48%' },
                 overlayOffsetY: '0%',
-                imageScaleMultiplier: 1.4,
+                imageScaleMultiplier: 1.2,
+                imageOffsetY: '-14%',
+                imageRotation: '26deg',
               },
               {
                 image: milicianaCalzado,
-                overlayImage: milicianaCalzadoCacho,
+                overlayImage: milicianaZapatosFragmento,
+                overlayHitImage: milicianaZapatosFragmento,
                 detailImage: milicianaCalzado,
-                label: 'Calzado',
-                detalle: 'El calzado se adaptaba a la urgencia del frente y a los recursos disponibles en cada momento.',
+                label: 'Alpargatas',
+                detalle: 'En la España de los años 30, las alpargatas eran el calzado más usado. Las usaban los campesinos, obreros, mineros, soldados y voluntarios. Con el comienzo de la Guerra Civil, los trabajadores que se sumaron a la defensa de la República, utilizaron la vestimenta que tenían a mano.',
                 estilo: { top: '83%', left: '50%' },
                 overlayOffsetY: '0%',
                 imageScaleMultiplier: 1.8,
@@ -604,14 +654,43 @@ export const HISTORIA = [
             base: sublevadoSxx,
             descripcion: "Los militares del bando sublevado vestían una guerrera de color caqui con cuello cerrado y el pantalón noruego con vendas en las pantorrillas y botas altas. Llevan el isabelino, un gorro con borla típico de las unidades de infantería de la época, que algunas milicianas usaron también colocando una estrella. Conservan una estética de ejército regular, a diferencia de las milicianas.",
             alineacion: "right",
-            hotspots: makeHotspots(
-              ['Isabelino', 'El gorro con borla remite a la infantería regular de la época.', '15%', '50%', sublevadoSxx],
-              ['Guerrera caqui', 'La guerrera de cuello cerrado marca la estructura del uniforme.', '41%', '50%', sublevadoSxx],
-              ['Vendas y botas', 'La parte inferior mezcla protección y apariencia de tropa regular.', '67%', '46%', sublevadoSxx],
-            ),
+            overlayHotspots: [
+              {
+                image: sublevadoGorroFragmento,
+                overlayImage: sublevadoGorroFragmento,
+                detailImage: sublevadoGorroDetalle,
+                label: 'Isabelino',
+                detalle: 'El gorro isabelino, era una tradición militar muy popular en España, y era básico en la uniformidad del ejército de la época. En el caso de la legión, llevaba una borla roja característica. Los milicianos también lo vistieron porque usaban lo que podían encontrar o uniformes militares estándar, y le añadían insignias como estrellas, quitando la borla en ocasiones.',
+                estilo: { top: '15%', left: '50%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.42,
+              },
+              {
+                image: sublevadoCartucherasFragmento,
+                overlayImage: sublevadoCartucherasFragmento,
+                detailImage: sublevadoCartucherasDetalle,
+                label: 'Cartucheras',
+                detalle: ' Llevaban la munición en 3 cartucheras en la parte frontal del cuerpo. Para soportar el peso de las cartucheras, usaban correajes que se cruzaban en forma de cruz por la espalda, todo ello sobre su característica camisa verde.',
+                estilo: { top: '41%', left: '50%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.15,
+              },
+              {
+                image: sublevadoPantalonesFragmento,
+                overlayImage: sublevadoPantalonesFragmento,
+                detailImage: sublevadoPantalonesDetalle,
+                label: 'Pantalones',
+                detalle: ' El pantalón granadero del Reglamento 1926 fue el más extensamente utilizado en la Guerra Civil Española, a pesar de los años que habían pasado. Es un tipo de pantalón bombacho de color caqui con una línea de botones entre el tobillo y la rodilla. En el momento de empezar la guerra en 1936 era el reglamentario del Ejército Español, aunque en este caso se trata de un legionario.',
+                estilo: { top: '67%', left: '46%' },
+                overlayOffsetY: '0%',
+                imageScaleMultiplier: 1.15,
+              },
+            ],
+            hotspots: [],
           }
         ]
       }
     ]
   }
 ];
+

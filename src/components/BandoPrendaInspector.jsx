@@ -1,11 +1,23 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import flechaA from '../assets/flechas/flecha_nueva_1.avif';
 import flechaB from '../assets/flechas/flecha_nueva_2.avif';
 import flechaC from '../assets/flechas/flecha_nueva_3.avif';
 
+/**
+ * Obtiene la imagen de un hotspot independientemente del alias usado en los datos.
+ *
+ * @param {object | null | undefined} hotspot
+ * @returns {string | null}
+ */
 const getHotspotImage = (hotspot) =>
   hotspot?.imagen ?? hotspot?.image ?? hotspot?.prendaImagen ?? hotspot?.asset ?? null;
 
+/**
+ * Interpreta un valor porcentual y devuelve su parte numérica.
+ *
+ * @param {number | string | null | undefined} value
+ * @returns {number | null}
+ */
 const parsePercent = (value) => {
   if (typeof value === 'number') return value;
   if (typeof value !== 'string') return null;
@@ -15,6 +27,13 @@ const parsePercent = (value) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+/**
+ * Resuelve qué lado debe usar la etiqueta de un hotspot.
+ *
+ * @param {object | null | undefined} hotspot
+ * @param {number} index
+ * @returns {'left' | 'right'}
+ */
 const resolveSide = (hotspot, index) => {
   if (hotspot?.side === 'left' || hotspot?.side === 'right') return hotspot.side;
   const leftValue = parsePercent(hotspot?.estilo?.left ?? hotspot?.style?.left);
@@ -22,6 +41,13 @@ const resolveSide = (hotspot, index) => {
   return index % 2 === 0 ? 'right' : 'left';
 };
 
+/**
+ * Interpreta un ratio desde valor numérico o porcentaje y lo limita a [0, 1].
+ *
+ * @param {number | string | null | undefined} value
+ * @param {number} fallback
+ * @returns {number}
+ */
 const parseRatio = (value, fallback) => {
   if (typeof value === 'number' && Number.isFinite(value)) {
     const normalized = value > 1 ? value / 100 : value;
@@ -32,6 +58,13 @@ const parseRatio = (value, fallback) => {
   return Math.max(0, Math.min(1, asPercent / 100));
 };
 
+/**
+ * Convierte longitudes tipo CSS a px usando un tamaño de referencia para porcentajes.
+ *
+ * @param {number | string | null | undefined} value
+ * @param {number} referenceSize
+ * @returns {number}
+ */
 const parseLengthToPx = (value, referenceSize) => {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value !== 'string') return 0;
@@ -54,6 +87,15 @@ const parseLengthToPx = (value, referenceSize) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+/**
+ * Calcula el rectángulo ocupado por una imagen contenida dentro de un contenedor.
+ *
+ * @param {number} containerWidth
+ * @param {number} containerHeight
+ * @param {number} imageWidth
+ * @param {number} imageHeight
+ * @returns {{x: number, y: number, width: number, height: number} | null}
+ */
 const resolveContainedImageRect = (containerWidth, containerHeight, imageWidth, imageHeight) => {
   if (
     containerWidth <= 0 ||
@@ -88,6 +130,13 @@ const resolveContainedImageRect = (containerWidth, containerHeight, imageWidth, 
   };
 };
 
+/**
+ * Convierte un color hexadecimal a rgba.
+ *
+ * @param {string} hex
+ * @param {number} alpha
+ * @returns {string}
+ */
 const hexToRgba = (hex, alpha) => {
   const value = hex?.replace('#', '');
   if (!value) return `rgba(143, 92, 59, ${alpha})`;
@@ -109,6 +158,7 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
+/** Metadatos de sprites de flecha usados para dibujar flechas contextuales. */
 const ARROW_STICKERS = [
   {
     src: flechaA,
@@ -135,7 +185,14 @@ const ARROW_STICKERS = [
     tipFlipped: { x: 2215, y: 105 },
   },
 ];
+const HOTSPOT_CONTENT_SWITCH_MS = 260;
 
+/**
+ * Inspector interactivo de prendas y hotspots de cada bando.
+ *
+ * @param {object} props
+ * @returns {JSX.Element}
+ */
 export default function BandoPrendaInspector({
   imageSrc,
   bandoName,
@@ -182,7 +239,10 @@ export default function BandoPrendaInspector({
   const [activeImageHasError, setActiveImageHasError] = useState(false);
   const [arrowGeometry, setArrowGeometry] = useState(null);
   const [overlayArrowStartPoint, setOverlayArrowStartPoint] = useState(null);
+  const [contentHotspotKey, setContentHotspotKey] = useState(null);
+  const [isHotspotContentVisible, setIsHotspotContentVisible] = useState(true);
   const lastCloseMobileHotspotSignalRef = useRef(closeMobileHotspotSignal);
+  const hotspotContentSwitchTimeoutRef = useRef(null);
   const hotspotRefs = useRef({});
   const overlayHotspotRefs = useRef({});
   const overlayAlphaMapsRef = useRef(new Map());
@@ -190,10 +250,23 @@ export default function BandoPrendaInspector({
   const panelRef = useRef(null);
   const arrowRafRef = useRef(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (hotspotContentSwitchTimeoutRef.current) {
+      window.clearTimeout(hotspotContentSwitchTimeoutRef.current);
+      hotspotContentSwitchTimeoutRef.current = null;
+    }
+    if (arrowRafRef.current !== null) {
+      window.cancelAnimationFrame(arrowRafRef.current);
+      arrowRafRef.current = null;
+    }
     setActiveHotspotIndex(null);
     setActiveOverlayHotspotKey(null);
+    setPressedHotspotKey(null);
     setOverlayArrowStartPoint(null);
+    setContentHotspotKey(null);
+    setIsHotspotContentVisible(true);
+    setActiveImageHasError(false);
+    setArrowGeometry(null);
   }, [bandoName, imageSrc, normalizedHotspots.length, normalizedOverlayHotspots.length]);
 
   const activeMarkerHotspot =
@@ -203,17 +276,140 @@ export default function BandoPrendaInspector({
       ? null
       : normalizedOverlayHotspots.find((hotspot) => hotspot.key === activeOverlayHotspotKey) ?? null;
   const activeHotspot = activeOverlayHotspot ?? activeMarkerHotspot;
-  const activeHotspotImage = activeOverlayHotspot?.detailImage ?? getHotspotImage(activeHotspot);
-  const activeHotspotImageScaleMultiplier = activeHotspot?.imageScaleMultiplier ?? 1;
-  const activeHotspotImageOffsetY = activeHotspot?.imageOffsetY ?? '0%';
-  const activeHotspotImageOffsetX = activeHotspot?.imageOffsetX ?? '0%';
+  const contentMarkerHotspot =
+    contentHotspotKey === null
+      ? null
+      : normalizedHotspots.find((hotspot) => hotspot.key === contentHotspotKey) ?? null;
+  const contentOverlayHotspot =
+    contentHotspotKey === null
+      ? null
+      : normalizedOverlayHotspots.find((hotspot) => hotspot.key === contentHotspotKey) ?? null;
+  const contentHotspot = contentOverlayHotspot ?? contentMarkerHotspot;
+
+  useEffect(() => {
+    const nextHotspotKey = activeHotspot?.key ?? null;
+    if (nextHotspotKey === contentHotspotKey) return;
+
+    if (hotspotContentSwitchTimeoutRef.current) {
+      window.clearTimeout(hotspotContentSwitchTimeoutRef.current);
+      hotspotContentSwitchTimeoutRef.current = null;
+    }
+
+    if (contentHotspotKey === null) {
+      setContentHotspotKey(nextHotspotKey);
+      setIsHotspotContentVisible(true);
+      return;
+    }
+
+    setIsHotspotContentVisible(false);
+    hotspotContentSwitchTimeoutRef.current = window.setTimeout(() => {
+      setContentHotspotKey(nextHotspotKey);
+      requestAnimationFrame(() => {
+        setIsHotspotContentVisible(true);
+      });
+      hotspotContentSwitchTimeoutRef.current = null;
+    }, HOTSPOT_CONTENT_SWITCH_MS);
+  }, [activeHotspot?.key, contentHotspotKey]);
+
+  useEffect(() => {
+    return () => {
+      if (!hotspotContentSwitchTimeoutRef.current) return;
+      window.clearTimeout(hotspotContentSwitchTimeoutRef.current);
+      hotspotContentSwitchTimeoutRef.current = null;
+    };
+  }, []);
+
+  const activeHotspotImages = useMemo(() => {
+    if (!contentHotspot) return [];
+
+    const galleryCandidates = [];
+    const addImage = (value) => {
+      if (typeof value !== 'string') return;
+      const trimmed = value.trim();
+      if (!trimmed) return;
+      galleryCandidates.push(trimmed);
+    };
+    const addImageCollection = (collection) => {
+      if (!Array.isArray(collection)) return;
+      collection.forEach((item) => {
+        if (typeof item === 'string') {
+          addImage(item);
+          return;
+        }
+        if (!item || typeof item !== 'object') return;
+        addImage(item.src ?? item.image ?? item.imagen ?? item.detailImage ?? null);
+      });
+    };
+
+    addImageCollection(contentHotspot.detailImages);
+    addImageCollection(contentHotspot.galleryImages);
+    addImageCollection(contentHotspot.galeria);
+    addImageCollection(contentHotspot.gallery);
+    const explicitGallery = [...new Set(galleryCandidates)];
+    if (explicitGallery.length > 0) return explicitGallery;
+
+    const singleImage =
+      contentOverlayHotspot?.detailImage ?? contentHotspot?.detailImage ?? getHotspotImage(contentHotspot);
+    if (typeof singleImage !== 'string') return [];
+    const trimmedSingleImage = singleImage.trim();
+    return trimmedSingleImage ? [trimmedSingleImage] : [];
+  }, [contentHotspot, contentOverlayHotspot]);
+  const activeHotspotImage = activeHotspotImages[0] ?? null;
+  const hasHotspotImageGallery = activeHotspotImages.length > 1;
+  const isUniformeEstandarGorroGallery =
+    hasHotspotImageGallery &&
+    bandoName === 'Uniforme Estándar' &&
+    /gorro/i.test(contentHotspot?.label ?? contentHotspot?.nombre ?? '');
+  const isRayadilloGorroGallery =
+    hasHotspotImageGallery &&
+    /rayadillo/i.test(bandoName ?? '') &&
+    /gorro/i.test(contentHotspot?.label ?? contentHotspot?.nombre ?? '');
+  const isLargeHatGallery = isUniformeEstandarGorroGallery || isRayadilloGorroGallery;
+  const uniformeEstandarGorroGalleryOffsetY = Math.max(24, Math.round(42 * viewportScale));
+  const showHotspotImageBlock =
+    activeHotspotImages.length > 0 && (hasHotspotImageGallery || !activeImageHasError);
+  const hotspotContentVisibilityClass = isHotspotContentVisible
+    ? 'timeline-hotspot-content-visible'
+    : 'timeline-hotspot-content-hidden';
+  const activeHotspotImageScaleMultiplier = contentHotspot?.imageScaleMultiplier ?? 1;
+  const activeHotspotImageOffsetY = contentHotspot?.imageOffsetY ?? '0%';
+  const activeHotspotImageOffsetX = contentHotspot?.imageOffsetX ?? '0%';
+  const activeHotspotImageRotation = (() => {
+    const rawRotation = contentHotspot?.imageRotation ?? contentHotspot?.imageRotate ?? '0deg';
+    if (typeof rawRotation === 'number' && Number.isFinite(rawRotation)) {
+      return `${rawRotation}deg`;
+    }
+    if (typeof rawRotation === 'string' && rawRotation.trim()) {
+      return rawRotation.trim();
+    }
+    return '0deg';
+  })();
   const isSoldadoLineaAccent = accentColor?.toLowerCase() === '#7fa9d6';
+  const isSigloXXAccent = accentColor?.toLowerCase() === '#c1a04d';
+  const isUniforme1926HotspotTheme = /uniforme\s*1926/i.test(bandoName ?? '');
+  const isSoldadoLineaHotspotTheme = /soldado\s*de\s*l[ií]nea/i.test(bandoName ?? '');
+  const hotspotAccentMode = isSigloXXAccent || isUniforme1926HotspotTheme || isSoldadoLineaHotspotTheme
+    ? 'red'
+    : isSoldadoLineaAccent
+      ? 'blue'
+      : 'default';
   const overlayOutlineFilterId = 'timeline-mannequin-overlay-outline-filter';
-  const overlayOutlineDilateRadius = 2;
-  const overlayOutlineBlur = 1.45;
-  const overlayOutlineOpacity = isSoldadoLineaAccent ? 1 : 0.88;
-  const overlayOutlineScale = 1.01;
+  const overlayOutlineDilateRadius = 4.2;
+  const overlayOutlineBlur = 2.8;
+  const overlayOutlineColor = hotspotAccentMode === 'red' ? '#ff4218' : '#ffffff';
+  const overlayOutlineOpacity = 1;
+  const overlayOutlineScale = 1;
+  const overlayHaloScaleMultiplier =
+    hotspotAccentMode === 'red' ? 1.58 : hotspotAccentMode === 'blue' ? 1.54 : 1.54;
+  const hotspotHaloScaleMultiplier =
+    hotspotAccentMode === 'red' ? 1.54 : hotspotAccentMode === 'blue' ? 1.5 : 1.5;
   const showMobilePrendaModal = isMobile && !!activeHotspot;
+
+  /**
+   * Limpia la selección activa de hotspot y overlay.
+   *
+   * @returns {void}
+   */
   function closeActiveHotspot() {
     setActiveHotspotIndex(null);
     setActiveOverlayHotspotKey(null);
@@ -254,7 +450,13 @@ export default function BandoPrendaInspector({
     const overlaySources = [
       ...new Set(
         normalizedOverlayHotspots
-          .map((hotspot) => hotspot.overlayImage ?? mainImageOverlaySrc ?? getHotspotImage(hotspot))
+          .map(
+            (hotspot) =>
+              hotspot.overlayHitImage ??
+              hotspot.overlayImage ??
+              mainImageOverlaySrc ??
+              getHotspotImage(hotspot),
+          )
           .filter(Boolean),
       ),
     ];
@@ -305,6 +507,13 @@ export default function BandoPrendaInspector({
     };
   }, [mainImageOverlaySrc, normalizedOverlayHotspots]);
 
+  /**
+   * Encuentra el hotspot superior cuyo píxel visible (alpha) ha sido pulsado.
+   *
+   * @param {number} clientX
+   * @param {number} clientY
+   * @returns {object | null}
+   */
   const getOverlayHitByVisiblePixel = useCallback(
     (clientX, clientY) => {
       const overlayLayerNode = overlayLayerRef.current;
@@ -317,7 +526,11 @@ export default function BandoPrendaInspector({
 
       const candidates = [...normalizedOverlayHotspots].reverse();
       for (const hotspot of candidates) {
-        const source = hotspot.overlayImage ?? mainImageOverlaySrc ?? getHotspotImage(hotspot);
+        const source =
+          hotspot.overlayHitImage ??
+          hotspot.overlayImage ??
+          mainImageOverlaySrc ??
+          getHotspotImage(hotspot);
         if (!source) continue;
 
         const alphaMap = overlayAlphaMapsRef.current.get(source);
@@ -371,11 +584,45 @@ export default function BandoPrendaInspector({
         }
       }
 
+      // Fallback geométrico: si el mapa alpha no detecta píxel visible,
+      // usamos el área declarada del hotspot o una caja centrada por defecto.
+      const fallbackCandidates = [...normalizedOverlayHotspots].reverse();
+      for (const hotspot of fallbackCandidates) {
+        const centerXRatio = parseRatio(hotspot.estilo?.left ?? hotspot.style?.left, 0.5);
+        const centerYRatio = parseRatio(hotspot.estilo?.top ?? hotspot.style?.top, 0.5);
+        const hitArea = hotspot.overlayHit ?? hotspot.hitArea ?? null;
+        const defaultHitSize = Math.max(72, Math.round(84 * viewportScale));
+        const hitWidth = hitArea
+          ? parseLengthToPx(hitArea.width ?? `${defaultHitSize}px`, layerRect.width)
+          : defaultHitSize;
+        const hitHeight = hitArea
+          ? parseLengthToPx(hitArea.height ?? `${defaultHitSize}px`, layerRect.height)
+          : defaultHitSize;
+        const hitLeft = hitArea
+          ? parseLengthToPx(hitArea.left ?? `${centerXRatio * 100}%`, layerRect.width)
+          : centerXRatio * layerRect.width - hitWidth / 2;
+        const hitTop = hitArea
+          ? parseLengthToPx(hitArea.top ?? `${centerYRatio * 100}%`, layerRect.height)
+          : centerYRatio * layerRect.height - hitHeight / 2;
+        const hitRight = hitLeft + hitWidth;
+        const hitBottom = hitTop + hitHeight;
+
+        if (pointerX >= hitLeft && pointerX <= hitRight && pointerY >= hitTop && pointerY <= hitBottom) {
+          return hotspot;
+        }
+      }
+
       return null;
     },
-    [mainImageOverlaySrc, normalizedOverlayHotspots],
+    [mainImageOverlaySrc, normalizedOverlayHotspots, viewportScale],
   );
 
+  /**
+   * Gestiona el pointer down sobre la capa overlay y alterna hotspots.
+   *
+   * @param {PointerEvent | import('react').PointerEvent} event
+   * @returns {void}
+   */
   const handleOverlayLayerPointerDown = useCallback(
     (event) => {
       if (normalizedOverlayHotspots.length === 0) return;
@@ -411,6 +658,11 @@ export default function BandoPrendaInspector({
     [activeOverlayHotspotKey, getOverlayHitByVisiblePixel, normalizedOverlayHotspots.length],
   );
 
+  /**
+   * Recalcula la geometría de la flecha entre hotspot activo y panel de información.
+   *
+   * @returns {void}
+   */
   const updateArrow = useCallback(() => {
     if (!showArrows || isMobile || (activeHotspotIndex === null && !activeOverlayHotspotKey)) {
       setArrowGeometry(null);
@@ -549,6 +801,11 @@ export default function BandoPrendaInspector({
     showArrows,
   ]);
 
+  /**
+   * Programa la actualización de la geometría de la flecha en el siguiente frame.
+   *
+   * @returns {void}
+   */
   const scheduleArrowUpdate = useCallback(() => {
     if (arrowRafRef.current !== null) return;
     arrowRafRef.current = window.requestAnimationFrame(() => {
@@ -583,6 +840,22 @@ export default function BandoPrendaInspector({
     };
   }, [activeHotspotIndex, activeOverlayHotspotKey, scheduleArrowUpdate]);
 
+  useEffect(() => {
+    if (!showArrows || isMobile) return;
+    if (activeHotspotIndex === null && !activeOverlayHotspotKey) return;
+    scheduleArrowUpdate();
+  }, [
+    activeHotspotIndex,
+    activeOverlayHotspotKey,
+    contentHotspotKey,
+    isHotspotContentVisible,
+    activeHotspotImage,
+    hasHotspotImageGallery,
+    isMobile,
+    scheduleArrowUpdate,
+    showArrows,
+  ]);
+
   const floatingImageWidthPx = Math.max(
     210,
     Math.round((isMobile ? 228 : 300) * viewportScale * imageScaleMultiplier * activeHotspotImageScaleMultiplier),
@@ -591,20 +864,80 @@ export default function BandoPrendaInspector({
     220,
     Math.round((isMobile ? 280 : 520) * viewportScale * imageScaleMultiplier * activeHotspotImageScaleMultiplier),
   )}px`;
-  const activeHotspotDetail = activeHotspot?.detalle ?? '';
+  const activeHotspotDetail = contentHotspot?.detalle ?? '';
   const activeHotspotDetailLines = Math.max(
     1,
     (activeHotspotDetail.match(/\n/g)?.length ?? 0) + Math.ceil(activeHotspotDetail.length / (isMobile ? 64 : 82)),
   );
-  const getBlueHaloStyle = (isActive) => {
-    if (!isSoldadoLineaAccent) return null;
+  /**
+   * Devuelve estilos de halo en función del tema visual del hotspot.
+   *
+   * @param {boolean} isActive
+   * @returns {object | null}
+   */
+  const getHotspotHaloStyle = (isActive) => {
+    if (hotspotAccentMode === 'blue') {
+      return {
+        background: isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.14)',
+        borderColor: isActive ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.92)',
+        borderWidth: isActive ? '2px' : '1.5px',
+        boxShadow: isActive
+          ? '0 0 0 1px rgba(255, 255, 255, 1), 0 0 0 2px rgba(255, 255, 255, 0.82), 0 0 30px rgba(255, 255, 255, 0.95), 0 0 54px rgba(255, 255, 255, 0.64)'
+          : '0 0 0 1px rgba(255, 255, 255, 0.98), 0 0 0 2px rgba(255, 255, 255, 0.68), 0 0 20px rgba(255, 255, 255, 0.76), 0 0 38px rgba(255, 255, 255, 0.46)',
+        filter: isActive ? 'brightness(1.26) saturate(1.2)' : 'brightness(1.16) saturate(1.06)',
+      };
+    }
+
+    if (hotspotAccentMode === 'red') {
+      return {
+        background: isActive ? 'rgba(255, 98, 38, 0.74)' : 'rgba(244, 76, 18, 0.52)',
+        borderColor: isActive ? 'rgba(255, 247, 241, 1)' : 'rgba(255, 212, 188, 1)',
+        borderWidth: isActive ? '2px' : '1.5px',
+        boxShadow: isActive
+          ? '0 0 0 1px rgba(255, 248, 243, 1), 0 0 0 2px rgba(255, 170, 124, 0.88), 0 0 36px rgba(255, 108, 46, 1), 0 0 72px rgba(232, 72, 22, 0.96), 0 0 98px rgba(176, 42, 10, 0.7)'
+          : '0 0 0 1px rgba(255, 216, 194, 1), 0 0 0 2px rgba(255, 152, 99, 0.72), 0 0 28px rgba(246, 92, 35, 0.86), 0 0 50px rgba(194, 52, 14, 0.6)',
+        filter: isActive ? 'brightness(1.3) saturate(1.72)' : 'brightness(1.2) saturate(1.5)',
+      };
+    }
 
     return {
-      background: isActive ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.06)',
-      borderColor: isActive ? 'rgba(255, 255, 255, 0.88)' : 'rgba(255, 255, 255, 0.5)',
+      background: isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.14)',
+      borderColor: isActive ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.92)',
+      borderWidth: isActive ? '2px' : '1.5px',
       boxShadow: isActive
-        ? '0 0 0 1px rgba(255, 255, 255, 0.95), 0 0 16px rgba(255, 255, 255, 0.42), 0 0 28px rgba(255, 255, 255, 0.18)'
-        : '0 0 0 1px rgba(255, 255, 255, 0.72), 0 0 10px rgba(255, 255, 255, 0.18)',
+        ? '0 0 0 1px rgba(255, 255, 255, 1), 0 0 0 2px rgba(255, 255, 255, 0.82), 0 0 30px rgba(255, 255, 255, 0.95), 0 0 54px rgba(255, 255, 255, 0.64)'
+        : '0 0 0 1px rgba(255, 255, 255, 0.98), 0 0 0 2px rgba(255, 255, 255, 0.68), 0 0 20px rgba(255, 255, 255, 0.76), 0 0 38px rgba(255, 255, 255, 0.46)',
+      filter: isActive ? 'brightness(1.26) saturate(1.2)' : 'brightness(1.16) saturate(1.06)',
+    };
+  };
+
+  /**
+   * Devuelve estilos de punto central en función del tema visual del hotspot.
+   *
+   * @param {boolean} isActive
+   * @returns {object | null}
+   */
+  const getHotspotDotStyle = (isActive) => {
+    if (hotspotAccentMode !== 'red') {
+      return {
+        background: isActive ? 'rgba(255, 255, 255, 1)' : 'rgba(238, 238, 238, 0.98)',
+        borderColor: isActive ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 255, 0.95)',
+        borderWidth: isActive ? '2px' : '1.5px',
+        boxShadow: isActive
+          ? '0 0 0 1px rgba(255, 255, 255, 1), 0 0 0 2px rgba(255, 255, 255, 0.84), 0 0 24px rgba(255, 255, 255, 0.98), 0 0 44px rgba(255, 255, 255, 0.68)'
+          : '0 0 0 1px rgba(255, 255, 255, 0.92), 0 0 16px rgba(255, 255, 255, 0.78), 0 0 30px rgba(255, 255, 255, 0.52)',
+        filter: isActive ? 'brightness(1.32) saturate(1.12)' : 'brightness(1.2) saturate(1.02)',
+      };
+    }
+
+    return {
+      background: isActive ? 'rgba(204, 50, 8, 1)' : 'rgba(156, 37, 10, 1)',
+      borderColor: isActive ? 'rgba(255, 246, 239, 1)' : 'rgba(255, 217, 196, 1)',
+      borderWidth: isActive ? '2px' : '1.5px',
+      boxShadow: isActive
+        ? '0 0 0 1px rgba(255, 249, 245, 1), 0 0 0 2px rgba(255, 178, 138, 0.8), 0 0 30px rgba(255, 99, 35, 1), 0 0 52px rgba(214, 52, 12, 0.82)'
+        : '0 0 0 1px rgba(255, 220, 201, 0.98), 0 0 18px rgba(246, 88, 28, 0.92), 0 0 34px rgba(192, 44, 11, 0.56)',
+      filter: isActive ? 'brightness(1.34) saturate(1.7)' : 'brightness(1.22) saturate(1.46)',
     };
   };
   const infoPanelExtraHeight = Math.min(
@@ -675,7 +1008,7 @@ export default function BandoPrendaInspector({
               />
               <feComposite in="dilated" in2="SourceAlpha" operator="out" result="outline" />
               <feGaussianBlur in="outline" stdDeviation={overlayOutlineBlur} result="softOutline" />
-              <feFlood floodColor="#ffffff" floodOpacity={overlayOutlineOpacity} result="white" />
+              <feFlood floodColor={overlayOutlineColor} floodOpacity={overlayOutlineOpacity} result="white" />
               <feComposite in="white" in2="softOutline" operator="in" result="whiteOutline" />
               <feMerge>
                 <feMergeNode in="whiteOutline" />
@@ -719,7 +1052,6 @@ export default function BandoPrendaInspector({
                 const overlayHaloSizePx = overlayHitArea?.haloSize ?? Math.max(42, Math.round(46 * viewportScale));
                 const overlayHotspotKey = overlayHotspot.key;
                 const isOverlayActive = activeOverlayHotspotKey === overlayHotspotKey;
-
                 return (
                   <Fragment key={overlayHotspotKey}>
                     <img
@@ -741,6 +1073,14 @@ export default function BandoPrendaInspector({
                       }`}
                       style={{
                         transform: `translateY(${overlayHotspotOffsetY})`,
+                        filter:
+                          hotspotAccentMode === 'red'
+                            ? isOverlayActive
+                              ? 'drop-shadow(0 0 16px rgba(255, 224, 210, 1)) drop-shadow(0 0 34px rgba(255, 110, 50, 0.94)) drop-shadow(0 0 56px rgba(205, 58, 18, 0.68))'
+                              : 'drop-shadow(0 0 12px rgba(255, 169, 132, 0.86)) drop-shadow(0 0 26px rgba(230, 86, 38, 0.64)) drop-shadow(0 0 40px rgba(180, 56, 18, 0.44))'
+                            : isOverlayActive
+                              ? 'drop-shadow(0 0 16px rgba(255, 255, 255, 1)) drop-shadow(0 0 34px rgba(255, 255, 255, 0.92)) drop-shadow(0 0 56px rgba(255, 255, 255, 0.62))'
+                              : 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.88)) drop-shadow(0 0 24px rgba(255, 255, 255, 0.66)) drop-shadow(0 0 38px rgba(255, 255, 255, 0.42))',
                       }}
                     />
                     <button
@@ -779,15 +1119,18 @@ export default function BandoPrendaInspector({
                         pointerEvents: 'none',
                       }}
                       >
-                <span
-                  className={`pointer-events-none absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full timeline-prenda-hotspot-halo ${
-                    isOverlayActive ? 'timeline-prenda-hotspot-halo-active' : ''
-                  }`}
-                  style={{
-                    width: `${overlayHaloSizePx}px`,
-                    height: `${overlayHaloSizePx}px`,
-                  }}
-                />
+                {overlayHotspot.showHalo ? (
+                  <span
+                    className={`pointer-events-none absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full timeline-prenda-hotspot-halo ${
+                      isOverlayActive ? 'timeline-prenda-hotspot-halo-active' : ''
+                    }`}
+                    style={{
+                      width: `${overlayHaloSizePx * overlayHaloScaleMultiplier}px`,
+                      height: `${overlayHaloSizePx * overlayHaloScaleMultiplier}px`,
+                      ...getHotspotHaloStyle(isOverlayActive),
+                    }}
+                  />
+                ) : null}
                     </button>
                   </Fragment>
                 );
@@ -812,7 +1155,6 @@ export default function BandoPrendaInspector({
           const hotspotHitSizePx = Math.max(48, Math.round((isMobile ? 48 : 48) * viewportScale));
           const hotspotVisualSizePx = Math.max(14, Math.round((isMobile ? 16 : 15) * viewportScale));
           const hotspotHaloSizePx = Math.max(28, Math.round(hotspotVisualSizePx * 2.3));
-
           const toggleHotspot = () => {
             setActiveOverlayHotspotKey(null);
             setOverlayArrowStartPoint(null);
@@ -870,9 +1212,9 @@ export default function BandoPrendaInspector({
                     isActive ? 'timeline-prenda-hotspot-halo-active' : ''
                   }`}
                   style={{
-                    width: `${hotspotHaloSizePx * (isSoldadoLineaAccent ? 1.12 : 1)}px`,
-                    height: `${hotspotHaloSizePx * (isSoldadoLineaAccent ? 1.12 : 1)}px`,
-                    ...getBlueHaloStyle(isActive),
+                    width: `${hotspotHaloSizePx * hotspotHaloScaleMultiplier}px`,
+                    height: `${hotspotHaloSizePx * hotspotHaloScaleMultiplier}px`,
+                    ...getHotspotHaloStyle(isActive),
                   }}
                 />
                 <span
@@ -882,6 +1224,7 @@ export default function BandoPrendaInspector({
                   style={{
                     width: `${hotspotVisualSizePx}px`,
                     height: `${hotspotVisualSizePx}px`,
+                    ...getHotspotDotStyle(isActive),
                   }}
                 />
               </button>
@@ -908,7 +1251,7 @@ export default function BandoPrendaInspector({
           }}
           role="dialog"
           aria-modal="true"
-          aria-label={activeHotspot?.label || activeHotspot?.nombre || 'Información de la prenda'}
+          aria-label={contentHotspot?.label || contentHotspot?.nombre || 'Información de la prenda'}
           onClick={closeActiveHotspot}
         >
           <div
@@ -956,9 +1299,9 @@ export default function BandoPrendaInspector({
                 </button>
               </div>
 
-              {activeHotspotImage && !activeImageHasError ? (
+              {showHotspotImageBlock ? (
               <div
-                className="flex items-center justify-center"
+                className={`timeline-hotspot-content-switch ${hotspotContentVisibilityClass} flex items-center ${hasHotspotImageGallery ? 'justify-start overflow-x-auto' : 'justify-center'}`}
                 style={{
                     minHeight: '14vh',
                     maxHeight: '20vh',
@@ -966,30 +1309,54 @@ export default function BandoPrendaInspector({
                     paddingRight: '1rem',
                     paddingLeft: '1rem',
                     paddingBottom: '0.25rem',
+                    gap: hasHotspotImageGallery
+                      ? `${isUniformeEstandarGorroGallery ? Math.max(4, Math.round(6 * viewportScale)) : 12}px`
+                      : undefined,
                   }}
                 >
-                  <img
-                    src={activeHotspotImage}
-                    alt={activeHotspot?.label ?? activeHotspot?.nombre ?? 'Prenda'}
-                    draggable="false"
-                    className="object-contain"
-                    style={{
-                      width: '100%',
-                      maxHeight: '20vh',
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                      WebkitUserDrag: 'none',
-                      transform: `translateX(${activeHotspotImageOffsetX}) translateY(${activeHotspotImageOffsetY})`,
-                      filter:
-                        'drop-shadow(0 18px 30px rgba(0, 0, 0, 0.42)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.26))',
-                    }}
-                  />
+                  {activeHotspotImages.map((imageSrc, index) => (
+                    <img
+                      key={`${contentHotspot?.key ?? 'hotspot-image'}-${index}-${imageSrc}`}
+                      src={imageSrc}
+                      alt={contentHotspot?.label ?? contentHotspot?.nombre ?? `Prenda ${index + 1}`}
+                      draggable="false"
+                      className="object-contain"
+                      onError={() => {
+                        if (!hasHotspotImageGallery && index === 0) {
+                          setActiveImageHasError(true);
+                        }
+                      }}
+                      style={{
+                        width: hasHotspotImageGallery
+                          ? `min(${Math.round((isLargeHatGallery ? 290 : 210) * viewportScale)}px, ${isLargeHatGallery ? '58vw' : '44vw'})`
+                          : '100%',
+                        maxHeight: '20vh',
+                        flex: hasHotspotImageGallery ? '0 0 auto' : '0 1 auto',
+                        pointerEvents: 'none',
+                        userSelect: 'none',
+                        WebkitUserDrag: 'none',
+                        marginLeft:
+                          isUniformeEstandarGorroGallery && index > 0
+                            ? `${-Math.max(14, Math.round(18 * viewportScale))}px`
+                            : '0px',
+                        transform:
+                          index === 0
+                            ? `translateX(${activeHotspotImageOffsetX}) translateY(${activeHotspotImageOffsetY}) rotate(${activeHotspotImageRotation})`
+                            : isUniformeEstandarGorroGallery && index === 1
+                              ? `translateY(${uniformeEstandarGorroGalleryOffsetY}px)`
+                              : 'none',
+                        filter:
+                          'drop-shadow(0 18px 30px rgba(0, 0, 0, 0.42)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.26))',
+                      }}
+                    />
+                  ))}
                 </div>
               ) : null}
 
               <div
+                className={`timeline-hotspot-content-switch ${hotspotContentVisibilityClass}`}
                 style={{
-                  paddingTop: activeHotspotImage && !activeImageHasError ? '0.05rem' : '0.35rem',
+                  paddingTop: showHotspotImageBlock ? '0.05rem' : '0.35rem',
                   paddingRight: '1rem',
                   paddingBottom: 'calc(2.2rem + env(safe-area-inset-bottom))',
                   paddingLeft: '1rem',
@@ -1010,7 +1377,7 @@ export default function BandoPrendaInspector({
                     textWrap: 'balance',
                   }}
                 >
-                  {activeHotspot?.label || activeHotspot?.nombre}
+                  {contentHotspot?.label || contentHotspot?.nombre}
                 </p>
                 <p
                   style={{
@@ -1028,7 +1395,7 @@ export default function BandoPrendaInspector({
                     letterSpacing: '0.01em',
                   }}
                 >
-                  {activeHotspot?.detalle}
+                  {contentHotspot?.detalle}
                 </p>
               </div>
             </div>
@@ -1036,9 +1403,9 @@ export default function BandoPrendaInspector({
         </div>
       )}
 
-      {activeHotspot && !isMobile && (
+      {contentHotspot && !isMobile && (
         <div
-          className="fixed z-56 pointer-events-none p-3 rounded-none border"
+          className={`fixed z-56 pointer-events-none p-3 rounded-none border timeline-hotspot-content-switch ${hotspotContentVisibilityClass}`}
           style={{
             right: '0px',
             width: '550px',
@@ -1075,7 +1442,7 @@ export default function BandoPrendaInspector({
               position: 'relative',
             }}
           >
-            {activeHotspot?.label || activeHotspot?.nombre}
+            {contentHotspot?.label || contentHotspot?.nombre}
           </p>
           <div style={{ marginTop: '38px' }}>
             <p
@@ -1093,34 +1460,83 @@ export default function BandoPrendaInspector({
                 letterSpacing: '0.01em',
               }}
             >
-              {activeHotspot?.detalle}
+              {contentHotspot?.detalle}
             </p>
           </div>
         </div>
       )}
 
-      {activeHotspot && !isMobile && activeHotspotImage && !activeImageHasError && (
-        <img
-          ref={panelRef}
-          src={activeHotspotImage}
-          alt={activeHotspot?.label ?? activeHotspot?.nombre ?? 'Prenda'}
-          className="fixed z-56 pointer-events-none object-contain timeline-prenda-sticker"
-          onError={() => setActiveImageHasError(true)}
-          style={{
-            left: isMobile ? '50%' : 'auto',
-            right: isMobile ? 'auto' : `${Math.max(14, Math.round(150 * viewportScale))}px`,
-            top: isMobile ? 'auto' : '40%',
-            bottom: isMobile ? `${Math.max(16, Math.round(20 * viewportScale))}px` : 'auto',
-            transform: isMobile
-              ? `translateX(calc(-50% + ${activeHotspotImageOffsetX})) translateY(${activeHotspotImageOffsetY})`
-              : `translateX(${activeHotspotImageOffsetX}) translateY(calc(-50% + ${activeHotspotImageOffsetY}))`,
-            width: `${floatingImageWidthPx}px`,
-            maxHeight: floatingImageMaxHeight,
-            height: 'auto',
-            filter:
-              'drop-shadow(0 28px 42px rgba(0, 0, 0, 0.52)) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.34))',
-          }}
-        />
+      {contentHotspot && !isMobile && activeHotspotImages.length > 0 && (
+        hasHotspotImageGallery ? (
+          <div
+            className={`fixed z-56 pointer-events-none timeline-hotspot-content-switch ${hotspotContentVisibilityClass}`}
+            style={{
+              right: `${Math.max(14, Math.round(110 * viewportScale))}px`,
+              top: '40%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              alignItems: 'center',
+              width: `${Math.max(
+                isLargeHatGallery ? 520 : 360,
+                Math.round((isLargeHatGallery ? 600 : 420) * viewportScale),
+              )}px`,
+              maxWidth: isLargeHatGallery ? '46vw' : '36vw',
+              columnGap: '0px',
+            }}
+          >
+            {activeHotspotImages.slice(0, 2).map((imageSrc, index) => (
+              <img
+                key={`desktop-floating-gallery-${index}-${imageSrc}`}
+                ref={index === 0 ? panelRef : undefined}
+                src={imageSrc}
+                alt={contentHotspot?.label ?? contentHotspot?.nombre ?? `Prenda ${index + 1}`}
+                className="object-contain timeline-prenda-sticker"
+                onLoad={index === 0 ? scheduleArrowUpdate : undefined}
+                style={{
+                  width: `${isLargeHatGallery ? 56 : 50}%`,
+                  maxHeight: floatingImageMaxHeight,
+                  height: 'auto',
+                  marginLeft:
+                    isUniformeEstandarGorroGallery && index > 0
+                      ? `${-Math.max(26, Math.round(34 * viewportScale))}px`
+                      : '0px',
+                  transform:
+                    isUniformeEstandarGorroGallery && index === 1
+                      ? `translateY(${uniformeEstandarGorroGalleryOffsetY}px)`
+                      : 'none',
+                  zIndex: index + 1,
+                  filter:
+                    'drop-shadow(0 28px 42px rgba(0, 0, 0, 0.52)) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.34))',
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          activeHotspotImage && !activeImageHasError && (
+            <img
+              ref={panelRef}
+              src={activeHotspotImage}
+              alt={contentHotspot?.label ?? contentHotspot?.nombre ?? 'Prenda'}
+              className={`fixed z-56 pointer-events-none object-contain timeline-prenda-sticker timeline-hotspot-content-switch ${hotspotContentVisibilityClass}`}
+              onLoad={scheduleArrowUpdate}
+              onError={() => setActiveImageHasError(true)}
+              style={{
+                left: isMobile ? '50%' : 'auto',
+                right: isMobile ? 'auto' : `${Math.max(14, Math.round(150 * viewportScale))}px`,
+                top: isMobile ? 'auto' : '40%',
+                bottom: isMobile ? `${Math.max(16, Math.round(20 * viewportScale))}px` : 'auto',
+                transform: isMobile
+                  ? `translateX(calc(-50% + ${activeHotspotImageOffsetX})) translateY(${activeHotspotImageOffsetY}) rotate(${activeHotspotImageRotation})`
+                  : `translateX(${activeHotspotImageOffsetX}) translateY(calc(-50% + ${activeHotspotImageOffsetY})) rotate(${activeHotspotImageRotation})`,
+                width: `${floatingImageWidthPx}px`,
+                maxHeight: floatingImageMaxHeight,
+                height: 'auto',
+                filter:
+                  'drop-shadow(0 28px 42px rgba(0, 0, 0, 0.52)) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.34))',
+              }}
+            />
+          )
+        )
       )}
     </div>
   );

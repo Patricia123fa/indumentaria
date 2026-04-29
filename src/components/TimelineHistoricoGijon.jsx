@@ -8,7 +8,21 @@ import sxxImage from '../assets/sxx.avif';
 import introVideo from '../assets/video/PANTALLA CARGA BATERIA ALTA (2).mp4';
 import proyectoTecnicoImage from '../assets/PROYECTOTECNICO.avif';
 
+/**
+ * Limpia la etiqueta de siglo para mostrar únicamente el numeral romano.
+ *
+ * @param {string} siglo
+ * @returns {string}
+ */
 const romanLabel = (siglo) => siglo.replace(/^S\.?\s*/i, '').trim();
+
+/**
+ * Obtiene un título legible a partir de una ruta de imagen.
+ *
+ * @param {string | null | undefined} imagePath
+ * @param {string} [fallback='']
+ * @returns {string}
+ */
 const getImageTitle = (imagePath, fallback = '') => {
   if (!imagePath || typeof imagePath !== 'string') return fallback;
   const filename = imagePath.split('/').pop() ?? '';
@@ -17,16 +31,41 @@ const getImageTitle = (imagePath, fallback = '') => {
   const normalized = baseWithoutHash.replace(/[_-]+/g, ' ').trim();
   return normalized || fallback;
 };
+/** Orden preferido de siglos en la línea de tiempo. */
 const PREFERRED_SIGLO_ORDER = ['S. XVII', 'S. XVIII', 'S. XIX', 'S. XX'];
 const LOOP_COPIES = 1;
+const SXX_CONFLICT_ORDER = ['pre-guerra', 'guerra-civil'];
+
+const reorderConflicts = (siglo) => {
+  if (!siglo || siglo.siglo !== 'S. XX' || !Array.isArray(siglo.conflictos)) return siglo;
+
+  const rankedConflicts = [...siglo.conflictos].sort((a, b) => {
+    const rankA = SXX_CONFLICT_ORDER.indexOf(a?.id);
+    const rankB = SXX_CONFLICT_ORDER.indexOf(b?.id);
+    const safeRankA = rankA === -1 ? Number.MAX_SAFE_INTEGER : rankA;
+    const safeRankB = rankB === -1 ? Number.MAX_SAFE_INTEGER : rankB;
+    return safeRankA - safeRankB;
+  });
+
+  return {
+    ...siglo,
+    conflictos: rankedConflicts,
+  };
+};
+
 const ORDERED_HISTORIA = (() => {
   const ordered = PREFERRED_SIGLO_ORDER.map((label) =>
     HISTORIA.find((siglo) => siglo.siglo === label),
-  ).filter(Boolean);
-  const remainder = HISTORIA.filter((siglo) => !PREFERRED_SIGLO_ORDER.includes(siglo.siglo));
+  )
+    .filter(Boolean)
+    .map(reorderConflicts);
+  const remainder = HISTORIA
+    .filter((siglo) => !PREFERRED_SIGLO_ORDER.includes(siglo.siglo))
+    .map(reorderConflicts);
   return [...ordered, ...remainder];
 })();
 
+/** Constantes de diseño y comportamiento. */
 const CIRCLE_SIZES = [214, 198, 226, 208];
 const CONNECTOR_LENGTHS = [170, 150, 185, 165];
 const BASE_CONFLICT_CONNECTOR = 178;
@@ -43,13 +82,19 @@ const CONFLICT_CONNECTOR_LENGTH_OVERRIDES = {
   'pre-guerra': 238,
   'guerra-civil': 276,
 };
+
+/** Ajustes específicos para bandos dentro de conflictos. */
 const CONFLICT_BANDO_DISTANCE_OFFSETS = {
   carlistas: [-18, 0],
   'guerra-civil': [-18, 0],
 };
+/** Ajustes específicos para el espaciado entre bandos dentro de conflictos. */
 const CONFLICT_BANDO_SPACING_OVERRIDES = {
   independencia: 78,
+  'guerra-civil': 74,
 };
+
+/** Factores para expandir/contraer conflictos según su distancia al centro de pantalla. */
 const OPEN_RADIUS_FACTOR = 0.43;
 const CLOSE_RADIUS_FACTOR = 0.48;
 const TIMELINE_PADDING_LEFT = 380;
@@ -79,6 +124,13 @@ const MOBILE_LINE_THICKNESS = '1.2cm';
 const MOBILE_LINE_HALF_THICKNESS = '0.6cm';
 const IDLE_TIMEOUT_MS = 30000;
 
+/**
+ * Convierte un color hexadecimal a rgba.
+ *
+ * @param {string} hex
+ * @param {number} alpha
+ * @returns {string}
+ */
 const hexToRgba = (hex, alpha) => {
   const value = hex?.replace('#', '');
   if (!value) return `rgba(143, 92, 59, ${alpha})`;
@@ -99,7 +151,11 @@ const hexToRgba = (hex, alpha) => {
   const b = intValue & 255;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
-
+/**
+ * Construye una lista de entradas de la línea de tiempo (siglos y puntos de conflicto).
+ *
+ * @returns {{type: 'siglo' | 'dot', sigloIndex: number, conflictIndex?: number, key?: string}[]}
+ */
 const buildTimelineEntries = () => {
   const entries = [];
   ORDERED_HISTORIA.forEach((siglo, sigloIndex) => {
@@ -111,14 +167,27 @@ const buildTimelineEntries = () => {
   return entries;
 };
 
+/** Entradas de la línea de tiempo con siglos y puntos de conflicto. */
 const TIMELINE_ENTRIES = buildTimelineEntries();
 const DOT_ENTRIES = TIMELINE_ENTRIES.filter((entry) => entry.type === 'dot');
 
+/**
+ * Devuelve la clave del primer punto de conflicto disponible.
+ *
+ * @returns {string | null}
+ */
 const getDefaultDotKey = () => {
   const firstDot = TIMELINE_ENTRIES.find((entry) => entry.type === 'dot');
   return firstDot?.key ?? null;
 };
 
+/**
+ * Calcula la longitud base del conector de un conflicto.
+ *
+ * @param {string | undefined} conflictId
+ * @param {number | undefined} conflictIndex
+ * @returns {number}
+ */
 const getConflictConnectorBaseLength = (conflictId, conflictIndex) => {
   const override = CONFLICT_CONNECTOR_LENGTH_OVERRIDES[conflictId];
   if (typeof override === 'number') return override;
@@ -132,20 +201,36 @@ const getConflictConnectorBaseLength = (conflictId, conflictIndex) => {
 
   return BASE_CONFLICT_CONNECTOR - 18 + (Math.abs(hash) % 84);
 };
-
+/**
+ * Calcula el ancho del nodo de conflicto para un siglo.
+ *
+ * @param {number} sigloIndex
+ * @returns {number}
+ */
 const getConflictNodeWidth = (sigloIndex) => {
   const conflictCount = ORDERED_HISTORIA[sigloIndex]?.conflictos?.length ?? 0;
   return conflictCount <= 1
     ? CONFLICT_NODE_WIDTH + SINGLE_CONFLICT_EXTRA_WIDTH
     : CONFLICT_NODE_WIDTH;
 };
-
+/**
+ * Calcula una escala de viewport para pantallas grandes.
+ *
+ * @param {number} viewportWidth
+ * @returns {number}
+ */
 const getViewportScale = (viewportWidth) => {
   if (viewportWidth <= FOUR_K_BASE_WIDTH) return 1;
   const progression = (viewportWidth - FOUR_K_BASE_WIDTH) / FOUR_K_BASE_WIDTH;
   return Math.min(FOUR_K_MAX_SCALE, 1 + progression * 0.6);
 };
 
+/**
+ * Divide una etiqueta en dos líneas para mejorar la legibilidad.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
 const toTwoLineLabel = (text) => {
   const words = (text ?? '').trim().split(/\s+/).filter(Boolean);
   if (words.length <= 1) return text;
@@ -153,12 +238,23 @@ const toTwoLineLabel = (text) => {
   return `${words.slice(0, splitIndex).join(' ')}\n${words.slice(splitIndex).join(' ')}`;
 };
 
+/**
+ * Determina el ratio de enfoque horizontal al centrar un siglo.
+ *
+ * @param {number} index
+ * @returns {number}
+ */
 const getSigloFocusRatio = (index) => {
   if (index === ORDERED_HISTORIA.length - 1) return LAST_SIGLO_FOCUS_RATIO;
   if (index === ORDERED_HISTORIA.length - 2) return XIX_SIGLO_FOCUS_RATIO;
   return SIGLO_SELECTION_PROBE_FACTOR;
 };
 
+/**
+ * Componente principal de la línea de tiempo histórica de Gijón.
+ *
+ * @returns {JSX.Element}
+ */
 export default function TimelineHistoricoGijon() {
   const [viewportWidth, setViewportWidth] = useState(() =>
     typeof window === 'undefined' ? FOUR_K_BASE_WIDTH : window.innerWidth,
@@ -167,7 +263,6 @@ export default function TimelineHistoricoGijon() {
   const [bandoViewSigloIdx, setBandoViewSigloIdx] = useState(null);
   const [hoveredCenturyIdx, setHoveredCenturyIdx] = useState(null);
   const [selectedBandoIndex, setSelectedBandoIndex] = useState(null);
-  const [singleBandoNavSide, setSingleBandoNavSide] = useState('right');
   const [isMobileBandoInfoOpen, setIsMobileBandoInfoOpen] = useState(false);
   const [isMobilePrendaModalOpen, setIsMobilePrendaModalOpen] = useState(false);
   const [mobileHotspotCloseSignal, setMobileHotspotCloseSignal] = useState(0);
@@ -208,12 +303,14 @@ export default function TimelineHistoricoGijon() {
     shouldPreventClick: false,
   });
 
+  /** Siglo activo actual, con fallback al primer siglo. */
   const activeSiglo = ORDERED_HISTORIA[sigloIdx] ?? ORDERED_HISTORIA[0];
   const isBandoView = bandoViewSigloIdx !== null;
   const activeConflictEntry = useMemo(
     () => DOT_ENTRIES.find((entry) => entry.key === activeDotKey) ?? null,
     [activeDotKey],
   );
+  /** Conflicto activo asociado al punto actualmente seleccionado. */
   const activeConflict = useMemo(() => {
     if (!activeConflictEntry) return null;
     return (
@@ -233,20 +330,67 @@ export default function TimelineHistoricoGijon() {
     }
     return 0;
   }, [activeConflictBandos, selectedBandoIndex]);
+  /** Bando activo según índice resuelto. */
   const selectedBando =
     resolvedSelectedBandoIndex === null
       ? null
       : activeConflictBandos[resolvedSelectedBandoIndex] ?? null;
   const hasMultipleBandos = activeConflictBandos.length > 1;
-  const nextBandoTarget = useMemo(() => {
+  const bandoNavTargets = useMemo(() => {
     if (!hasMultipleBandos || resolvedSelectedBandoIndex === null) return null;
     const total = activeConflictBandos.length;
+
+    if (total === 2) {
+      if (resolvedSelectedBandoIndex === 0) {
+        const nextIndex = 1;
+        return {
+          left: null,
+          right: {
+            nextIndex,
+            nextName: activeConflictBandos[nextIndex]?.nombre ?? `Bando ${nextIndex + 1}`,
+          },
+        };
+      }
+
+      const previousIndex = 0;
+      return {
+        left: {
+          nextIndex: previousIndex,
+          nextName: activeConflictBandos[previousIndex]?.nombre ?? `Bando ${previousIndex + 1}`,
+        },
+        right: null,
+      };
+    }
+
+    if (activeConflict?.id === 'guerra-civil') {
+      const leftIndex = resolvedSelectedBandoIndex > 0 ? resolvedSelectedBandoIndex - 1 : null;
+      const rightIndex = resolvedSelectedBandoIndex < total - 1 ? resolvedSelectedBandoIndex + 1 : null;
+      return {
+        left: leftIndex === null
+          ? null
+          : {
+              nextIndex: leftIndex,
+              nextName: activeConflictBandos[leftIndex]?.nombre ?? `Bando ${leftIndex + 1}`,
+            },
+        right: rightIndex === null
+          ? null
+          : {
+              nextIndex: rightIndex,
+              nextName: activeConflictBandos[rightIndex]?.nombre ?? `Bando ${rightIndex + 1}`,
+            },
+      };
+    }
+
     const nextIndex = (resolvedSelectedBandoIndex + 1) % total;
     return {
-      nextIndex,
-      nextName: activeConflictBandos[nextIndex]?.nombre ?? `Bando ${nextIndex + 1}`,
+      left: null,
+      right: {
+        nextIndex,
+        nextName: activeConflictBandos[nextIndex]?.nombre ?? `Bando ${nextIndex + 1}`,
+      },
     };
-  }, [activeConflictBandos, hasMultipleBandos, resolvedSelectedBandoIndex]);
+  }, [activeConflict?.id, activeConflictBandos, hasMultipleBandos, resolvedSelectedBandoIndex]);
+  /** Imagen base del bando activo. */
   const selectedBandoImage = selectedBando?.base ?? null;
   const selectedBandoDescription =
     selectedBando?.descripcion ??
@@ -274,6 +418,12 @@ export default function TimelineHistoricoGijon() {
     },
     [viewportScale],
   );
+  /**
+   * Escala un valor para elementos de la línea temporal según viewport y móvil.
+   *
+   * @param {number} value
+   * @returns {number}
+   */
   const scaleTimelinePx = useCallback(
     (value) => {
       if (!Number.isFinite(value)) return value;
@@ -281,6 +431,7 @@ export default function TimelineHistoricoGijon() {
     },
     [timelineScaleFactor, viewportScale],
   );
+  /** Controla si el panel de información del bando debe mostrarse. */
   const showBandoInfoPanel = isBandoView && (!isMobile || (isMobileBandoInfoOpen && !isMobilePrendaModalOpen));
   const clearIdleTimeout = useCallback(() => {
     if (idleTimeoutRef.current) {
@@ -288,6 +439,11 @@ export default function TimelineHistoricoGijon() {
       idleTimeoutRef.current = null;
     }
   }, []);
+  /**
+   * Programa el modo inactivo tras un periodo sin interacción.
+   *
+   * @returns {void}
+   */
   const scheduleIdleMode = useCallback(() => {
     clearIdleTimeout();
     idleTimeoutRef.current = window.setTimeout(() => {
@@ -371,6 +527,7 @@ export default function TimelineHistoricoGijon() {
       return undefined;
     }
 
+    /** Calcula la posición vertical del botón de información móvil. */
     const frameId = window.requestAnimationFrame(() => {
       const defaultTop = scalePx(96);
       const titleNode = conflictTitleWrapRef.current;
@@ -378,7 +535,7 @@ export default function TimelineHistoricoGijon() {
         setMobileInfoButtonTopPx(defaultTop);
         return;
       }
-
+      /** Ajusta el botón para que quede por debajo del título del conflicto. */
       const measuredTop = Math.ceil(titleNode.offsetTop + titleNode.offsetHeight + scalePx(12));
       setMobileInfoButtonTopPx(Math.max(defaultTop, measuredTop));
     });
@@ -386,6 +543,11 @@ export default function TimelineHistoricoGijon() {
     return () => window.cancelAnimationFrame(frameId);
   }, [activeConflict?.nombre, isBandoView, isMobile, scalePx, viewportWidth]);
 
+  /**
+   * Ejecuta la siguiente transición de fondo en cola.
+   *
+   * @returns {void}
+   */
   const runNextBackgroundTransition = useCallback(() => {
     if (backgroundFadeTimeoutRef.current) {
       window.clearTimeout(backgroundFadeTimeoutRef.current);
@@ -396,6 +558,7 @@ export default function TimelineHistoricoGijon() {
       backgroundFadeRafRef.current = null;
     }
 
+    /** Obtiene el siguiente fondo de la cola y corta si no hay pendientes. */
     const nextBackground = backgroundQueueRef.current.shift();
     if (!nextBackground) {
       isBackgroundTransitionRunningRef.current = false;
@@ -432,6 +595,12 @@ export default function TimelineHistoricoGijon() {
     }, BACKGROUND_FADE_MS);
   }, []);
 
+  /**
+   * Encola una transición de fondo evitando duplicados consecutivos.
+   *
+   * @param {string | null} targetBackground
+   * @returns {void}
+   */
   const enqueueBackgroundTransition = useCallback(
     (targetBackground) => {
       if (!targetBackground) return;
@@ -456,6 +625,11 @@ export default function TimelineHistoricoGijon() {
     [runNextBackgroundTransition],
   );
 
+  /**
+   * Actualiza expansión de puntos y selección automática de siglo.
+   *
+   * @returns {void}
+   */
   const updateExpandedDots = useCallback(() => {
     const container = wrapperRef.current;
     if (!container) return;
@@ -469,7 +643,7 @@ export default function TimelineHistoricoGijon() {
     setExpandedDotsByKey((prev) => {
       let hasChanges = false;
       const next = { ...prev };
-
+      /** Recorre puntos y aplica expansión/contracción según distancia al centro. */
       DOT_ENTRIES.forEach((entry) => {
         const key = entry.key;
         const node = dotRefs.current[key];
@@ -494,17 +668,20 @@ export default function TimelineHistoricoGijon() {
       return hasChanges ? next : prev;
     });
 
+    /** Calcula posiciones centrales de siglos para decidir selección activa. */
     const centuryCenters = ORDERED_HISTORIA.map((_, index) => {
       const node = centuryRefs.current[index];
       if (!node) return null;
       const rect = node.getBoundingClientRect();
       return rect.left + rect.width / 2;
     });
+    /** Conserva únicamente siglos con posición válida en pantalla. */
     const positionedCenturies = centuryCenters
       .map((center, index) => ({ center, index }))
       .filter((item) => Number.isFinite(item.center));
     if (!positionedCenturies.length) return;
 
+    /** Determina el índice objetivo aplicando lógica de bordes. */
     let targetSigloIndex = positionedCenturies[0].index;
     const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
     const edgeLockDistance = Math.max(24, container.clientWidth * EDGE_LOCK_FACTOR);
@@ -531,6 +708,7 @@ export default function TimelineHistoricoGijon() {
       }
     }
 
+    /** Actualiza el siglo activo evitando saltos bruscos durante arrastre. */
     setSigloIdx((prev) => {
       if (prev === targetSigloIndex) return prev;
       const now = window.performance.now();
@@ -614,11 +792,23 @@ export default function TimelineHistoricoGijon() {
     };
   }, []);
 
+  /**
+   * Obtiene el conflicto asociado a una entrada tipo dot.
+   *
+   * @param {{type: string, sigloIndex: number, conflictIndex: number}} entry
+   * @returns {object | null}
+   */
   const getConflict = useCallback((entry) => {
     if (entry.type !== 'dot') return null;
     return ORDERED_HISTORIA[entry.sigloIndex]?.conflictos?.[entry.conflictIndex] ?? null;
   }, []);
 
+  /**
+   * Inicia el arrastre horizontal de la línea de tiempo.
+   *
+   * @param {import('react').PointerEvent} event
+   * @returns {void}
+   */
   const handlePointerDown = useCallback((event) => {
     const container = wrapperRef.current;
     if (!container) return;
@@ -633,6 +823,12 @@ export default function TimelineHistoricoGijon() {
     setIsDragging(true);
   }, []);
 
+  /**
+   * Actualiza el desplazamiento horizontal durante el arrastre.
+   *
+   * @param {import('react').PointerEvent} event
+   * @returns {void}
+   */
   const handlePointerMove = useCallback((event) => {
     const container = wrapperRef.current;
     const dragState = dragRef.current;
@@ -646,6 +842,12 @@ export default function TimelineHistoricoGijon() {
     container.scrollLeft = Math.max(0, Math.min(targetScroll, maxScroll));
   }, []);
 
+  /**
+   * Finaliza el arrastre horizontal de la línea de tiempo.
+   *
+   * @param {import('react').PointerEvent} event
+   * @returns {void}
+   */
   const handlePointerEnd = useCallback((event) => {
     const container = wrapperRef.current;
     const dragState = dragRef.current;
@@ -656,6 +858,12 @@ export default function TimelineHistoricoGijon() {
     updateExpandedDots();
   }, [updateExpandedDots]);
 
+  /**
+   * Activa un punto de conflicto y su siglo asociado.
+   *
+   * @param {{key: string, sigloIndex: number}} entry
+   * @returns {void}
+   */
   const handleDotClick = useCallback((entry) => {
     if (dragRef.current.shouldPreventClick) {
       dragRef.current.shouldPreventClick = false;
@@ -669,6 +877,14 @@ export default function TimelineHistoricoGijon() {
     setSigloIdx(entry.sigloIndex);
   }, []);
 
+  /**
+   * Centra un siglo concreto dentro de la línea de tiempo.
+   *
+   * @param {number} index
+   * @param {'smooth' | 'auto'} [behavior='smooth']
+   * @param {number} [focusRatio=0.5]
+   * @returns {void}
+   */
   const scrollToSigloInTimeline = useCallback((index, behavior = 'smooth', focusRatio = 0.5) => {
     const container = wrapperRef.current;
     const centuryNode = centuryRefs.current[index];
@@ -691,6 +907,12 @@ export default function TimelineHistoricoGijon() {
     container.scrollTo({ left: targetLeft, behavior: resolvedBehavior });
   }, []);
 
+  /**
+   * Activa un siglo y posiciona su primer conflicto.
+   *
+   * @param {number} index
+   * @returns {void}
+   */
   const handleSigloClick = useCallback((index) => {
     if (dragRef.current.shouldPreventClick) {
       dragRef.current.shouldPreventClick = false;
@@ -707,10 +929,23 @@ export default function TimelineHistoricoGijon() {
     }
   }, []);
 
+  /**
+   * Cierra la imagen ampliada del siglo.
+   *
+   * @returns {void}
+   */
   const closeExpandedCenturyImage = useCallback(() => {
     setExpandedCenturyImage(null);
   }, []);
-
+  /**
+   * Gestiona el click en una imagen de siglo para activar o ampliar.
+   *
+   * @param {number} index
+   * @param {string | null} imageSrc
+   * @param {string | null} imageAlt
+   * @param {boolean} canExpand
+   * @returns {void}
+   */
   const handleCenturyImageClick = useCallback(
     (index, imageSrc, imageAlt, canExpand) => {
       if (dragRef.current.shouldPreventClick) {
@@ -726,7 +961,7 @@ export default function TimelineHistoricoGijon() {
       }
       handleSigloClick(index);
       if (imageSrc) {
-        // Open right after activation so one click is enough.
+        /** Open right after activation so one click is enough. */
         window.requestAnimationFrame(() => {
           window.requestAnimationFrame(() => {
             setExpandedCenturyImage({
@@ -751,6 +986,13 @@ export default function TimelineHistoricoGijon() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [expandedCenturyImage]);
 
+  /**
+   * Activa la vista de bando para un conflicto.
+   *
+   * @param {{key: string, sigloIndex: number}} entry
+   * @param {number} bandoIndex
+   * @returns {void}
+   */
   const handleBandoClick = useCallback((entry, bandoIndex) => {
     dragRef.current.shouldPreventClick = false;
     if (pendingDotSwitchTimeoutRef.current) {
@@ -761,17 +1003,27 @@ export default function TimelineHistoricoGijon() {
     setActiveDotKey(entry.key);
     setSigloIdx(entry.sigloIndex);
     setSelectedBandoIndex(bandoIndex);
-    setSingleBandoNavSide('right');
     setIsMobileBandoInfoOpen(false);
     setBandoViewSigloIdx(entry.sigloIndex);
   }, [blurFocusedElement]);
 
-  const handleSingleBandoNav = useCallback(() => {
-    if (!nextBandoTarget) return;
-    setSelectedBandoIndex(nextBandoTarget.nextIndex);
-    setSingleBandoNavSide((prev) => (prev === 'right' ? 'left' : 'right'));
-  }, [nextBandoTarget]);
+  /**
+   * Navega a un bando objetivo dentro del conflicto activo.
+   *
+   * @param {number} targetIndex
+   * @returns {void}
+   */
+  const handleBandoNav = useCallback((targetIndex) => {
+    if (!Number.isInteger(targetIndex)) return;
+    setSelectedBandoIndex(targetIndex);
+  }, []);
 
+  /**
+   * Vuelve de la vista de bandos a la línea de tiempo en un siglo concreto.
+   *
+   * @param {number} index
+   * @returns {void}
+   */
   const handleBackToTimelineAtSiglo = useCallback(
     (index) => {
       if (revealTimeoutRef.current) {
@@ -786,7 +1038,6 @@ export default function TimelineHistoricoGijon() {
       setForcedRevealSigloIdx(index);
       setBandoViewSigloIdx(null);
       setSelectedBandoIndex(null);
-      setSingleBandoNavSide('right');
       setIsMobileBandoInfoOpen(false);
       setSigloIdx(index);
       const firstConflict = ORDERED_HISTORIA[index]?.conflictos?.[0];
@@ -814,6 +1065,12 @@ export default function TimelineHistoricoGijon() {
     [blurFocusedElement, scrollToSigloInTimeline, updateExpandedDots],
   );
 
+  /**
+   * Renderiza un nodo de siglo en la línea de tiempo.
+   *
+   * @param {{sigloIndex: number}} entry
+   * @returns {JSX.Element}
+   */
   const renderCenturyNode = (entry) => {
     const index = entry.sigloIndex;
     const siglo = ORDERED_HISTORIA[index];
@@ -937,7 +1194,7 @@ export default function TimelineHistoricoGijon() {
           onBlur={() =>
             setHoveredCenturyIdx((prev) => (prev === index ? null : prev))
           }
-          className="absolute z-[5]"
+          className="absolute z-5"
           aria-pressed={isActive}
           style={{
             width: `${displayBlockWidth}px`,
@@ -993,6 +1250,12 @@ export default function TimelineHistoricoGijon() {
     );
   };
 
+  /**
+   * Renderiza un punto de conflicto de la línea temporal.
+   *
+   * @param {{key: string, sigloIndex: number, conflictIndex: number}} entry
+   * @returns {JSX.Element | null}
+   */
   const renderConflictDot = (entry) => {
     const conflict = getConflict(entry);
     if (!conflict) return null;
@@ -1021,6 +1284,12 @@ export default function TimelineHistoricoGijon() {
       conflict.id === 'hispano-americana' ||
       conflict.id === 'guerra-civil';
 
+    /**
+     * Calcula la posición vertical de un bando en el conector del conflicto.
+     *
+     * @param {number} index
+     * @returns {number}
+     */
     const getBandoTop = (index) => {
       if (!isExpanded) return 0;
       const scaledOffset = scaleTimelinePx(bandoOffsets[index] ?? 0);
@@ -1037,6 +1306,7 @@ export default function TimelineHistoricoGijon() {
       return isTop ? visibleLength - distanceFromAxis : distanceFromAxis;
     };
 
+    /** Ancho del nodo de conflicto ajustado a escala. */
     const nodeWidth = scaleTimelinePx(getConflictNodeWidth(entry.sigloIndex));
     const conflictCenturyAccent = ORDERED_HISTORIA[entry.sigloIndex]?.acento ?? '#fff8f1';
     const bandoMarkerSize = isMobile ? 24 : 20;
@@ -1070,7 +1340,7 @@ export default function TimelineHistoricoGijon() {
         </button>
 
         <span
-          className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-[4px] px-5 py-1 text-center text-[0.82rem] font-bold uppercase tracking-[0.08em]"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-sm px-5 py-1 text-center text-[0.82rem] font-bold uppercase tracking-[0.08em]"
           style={
             {
               padding: `${scaleTimelinePx(conflictPillPaddingY)}px ${scaleTimelinePx(conflictPillPaddingX)}px`,
@@ -1114,7 +1384,7 @@ export default function TimelineHistoricoGijon() {
                 key={`${entry.key}-bando-${index}`}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => handleBandoClick(entry, index)}
-                className="absolute left-1/2 block h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-[2px] border-[6px] border-black/80 bg-white/55 pointer-events-auto cursor-pointer"
+                className="absolute left-1/2 block h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-xs border-[6px] border-black/80 bg-white/55 pointer-events-auto cursor-pointer"
                 style={{
                   top: `${getBandoTop(index)}px`,
                   width: `${bandoMarkerSize}px`,
@@ -1127,11 +1397,11 @@ export default function TimelineHistoricoGijon() {
                 aria-label={bandoName}
               >
                 <span
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[2px] timeline-click-halo"
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xs timeline-click-halo"
                   style={{ width: `${bandoInnerSize}px`, height: `${bandoInnerSize}px` }}
                 />
                 <span
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[2px] bg-black timeline-dot-core"
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xs bg-black timeline-dot-core"
                   style={{ width: `${bandoInnerSize}px`, height: `${bandoInnerSize}px` }}
                 />
                 {labelSide && (
@@ -1316,22 +1586,20 @@ export default function TimelineHistoricoGijon() {
 
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[25]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-25"
             style={{
               height: timelineLineThickness,
               backgroundColor: '#000',
             }}
           />
 
-          {nextBandoTarget && (
+          {bandoNavTargets?.left && (
             <button
               type="button"
-              onClick={handleSingleBandoNav}
-              className={`pointer-events-auto absolute flex items-center gap-2 rounded-[3px] border uppercase transition-all duration-200 ${singleBandoNavSide === 'right' ? 'justify-end' : 'justify-start'}`}
+              onClick={() => handleBandoNav(bandoNavTargets.left.nextIndex)}
+              className="pointer-events-auto absolute left-0 flex items-center justify-start gap-2 rounded-[3px] border uppercase transition-all duration-200"
               style={{
-                ...(singleBandoNavSide === 'right'
-                  ? { right: `${scalePx(isMobile ? 10 : 12)}px` }
-                  : { left: `${scalePx(isMobile ? 10 : 12)}px` }),
+                left: `${scalePx(isMobile ? 10 : 12)}px`,
                 ...(isMobile
                   ? {
                       top: 'auto',
@@ -1356,18 +1624,50 @@ export default function TimelineHistoricoGijon() {
                 opacity: isMobilePrendaModalOpen ? 0.18 : 1,
                 pointerEvents: isMobilePrendaModalOpen ? 'none' : 'auto',
               }}
-              aria-label={`Ir al bando ${nextBandoTarget.nextName}`}
-              title={nextBandoTarget.nextName}
+              aria-label={`Ir al bando ${bandoNavTargets.left.nextName}`}
+              title={bandoNavTargets.left.nextName}
             >
-              {singleBandoNavSide === 'left' && (
-                <span style={{ fontSize: `${((isMobile ? 0.72 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'<'}</span>
-              )}
-              <span className={`truncate font-semibold ${singleBandoNavSide === 'right' ? 'text-right' : 'text-left'}`}>
-                {nextBandoTarget.nextName}
-              </span>
-              {singleBandoNavSide === 'right' && (
-                <span style={{ fontSize: `${((isMobile ? 0.72 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'>'}</span>
-              )}
+              <span style={{ fontSize: `${((isMobile ? 0.72 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'<'}</span>
+              <span className="truncate text-left font-semibold">{bandoNavTargets.left.nextName}</span>
+            </button>
+          )}
+
+          {bandoNavTargets?.right && (
+            <button
+              type="button"
+              onClick={() => handleBandoNav(bandoNavTargets.right.nextIndex)}
+              className="pointer-events-auto absolute right-0 flex items-center justify-end gap-2 rounded-[3px] border uppercase transition-all duration-200"
+              style={{
+                right: `${scalePx(isMobile ? 10 : 12)}px`,
+                ...(isMobile
+                  ? {
+                      top: 'auto',
+                      bottom: `calc(${timelineLineThickness} + ${scalePx(8)}px)`,
+                      transform: 'none',
+                    }
+                  : {
+                      top: `calc(100% - ${timelineLineHalfThickness})`,
+                      transform: 'translateY(-50%)',
+                    }),
+                minWidth: `${scalePx(isMobile ? 120 : 214)}px`,
+                maxWidth: isMobile ? '42vw' : `min(${scalePx(320)}px, 26vw)`,
+                padding: `${scalePx(isMobile ? 5 : 9)}px ${scalePx(isMobile ? 8 : 12)}px`,
+                backgroundColor: hexToRgba(activeSiglo?.acento ?? '#8f5c3b', isMobile ? 0.66 : 0.74),
+                color: isMobile ? '#050505' : '#fff8f1',
+                borderColor: hexToRgba(activeSiglo?.acento ?? '#8f5c3b', isMobile ? 0.78 : 0.85),
+                borderWidth: '1px',
+                boxShadow: `0 0 0 1px ${hexToRgba(activeSiglo?.acento ?? '#8f5c3b', 0.2)}, 0 4px 10px rgba(0, 0, 0, 0.24)`,
+                fontSize: `${((isMobile ? 0.56 : 0.82) * viewportScale).toFixed(3)}rem`,
+                letterSpacing: isMobile ? '0.06em' : '0.16em',
+                zIndex: isMobilePrendaModalOpen ? 80 : 40,
+                opacity: isMobilePrendaModalOpen ? 0.18 : 1,
+                pointerEvents: isMobilePrendaModalOpen ? 'none' : 'auto',
+              }}
+              aria-label={`Ir al bando ${bandoNavTargets.right.nextName}`}
+              title={bandoNavTargets.right.nextName}
+            >
+              <span className="truncate text-right font-semibold">{bandoNavTargets.right.nextName}</span>
+              <span style={{ fontSize: `${((isMobile ? 0.72 : 1.1) * viewportScale).toFixed(3)}rem`, lineHeight: 1 }}>{'>'}</span>
             </button>
           )}
 
@@ -1555,7 +1855,7 @@ export default function TimelineHistoricoGijon() {
                   key={`bando-view-siglo-${siglo.siglo}-${index}`}
                   type="button"
                   onClick={() => handleBackToTimelineAtSiglo(index)}
-                  className="rounded-[3px] border px-3 py-[3px] text-[0.72rem] font-semibold uppercase tracking-[0.16em] transition-all duration-200"
+                  className="rounded-[3px] border px-3 py-0.75 text-[0.72rem] font-semibold uppercase tracking-[0.16em] transition-all duration-200"
                   style={{
                     padding: `${scalePx(isMobile ? 2 : 3)}px ${scalePx(isMobile ? 8 : 12)}px`,
                     fontSize: `${((isMobile ? 0.62 : 0.72) * viewportScale).toFixed(3)}rem`,
@@ -1581,21 +1881,21 @@ export default function TimelineHistoricoGijon() {
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute inset-0 z-[80] flex items-center justify-center bg-black/72 px-4"
+          className="absolute inset-0 z-80 flex items-center justify-center bg-black/72 px-4"
           onClick={closeExpandedCenturyImage}
         >
           <button
             type="button"
             aria-label="Cerrar imagen ampliada"
             onClick={closeExpandedCenturyImage}
-            className="absolute right-4 top-4 z-[82] rounded-[2px] border border-white/55 bg-black/46 px-3 py-1 text-sm font-semibold text-[#fff8f1]"
+            className="absolute right-4 top-4 z-82 rounded-xs border border-white/55 bg-black/46 px-3 py-1 text-sm font-semibold text-[#fff8f1]"
           >
             Cerrar
           </button>
           <img
             src={expandedCenturyImage.src}
             alt={expandedCenturyImage.alt}
-            className="z-[81] object-contain"
+            className="z-81 object-contain"
             style={{
               width: 'min(92vw, 1800px)',
               maxHeight: '90vh',
@@ -1649,4 +1949,3 @@ export default function TimelineHistoricoGijon() {
     </div>
   );
 }
-
