@@ -1,10 +1,12 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HISTORIA } from '../data/conflictos';
 import BandoPrendaInspector from './BandoPrendaInspector';
-import terciosImage from '../assets/tercios.avif';
-import sxviiiImage from '../assets/sxviii.avif';
-import sxixImage from '../assets/Sxix.avif';
-import sxxImage from '../assets/sxx.avif';
+import terciosImage from '../assets/SXVII.jpg';
+import sxviiiImage from '../assets/S.XVIII.jpg';
+import sxixImage from '../assets/S.XIX.jpg';
+import sxxImage from '../assets/S.XX.jpg';
+import casitaNegraIcon from '../assets/casita-negra.png';
+import infoIcon from '../assets/info.png';
 import introVideo from '../assets/video/PANTALLA CARGA BATERIA ALTA (2).mp4';
 import proyectoTecnicoImage from '../assets/PROYECTOTECNICO.avif';
 
@@ -111,6 +113,12 @@ const BACKGROUND_FADE_MS = 700;
 const SIGLO_PILL_WIDTH = 108;
 const ACTIVE_CIRCLE_SCALES = [1.36, 1.18, 1.46, 1.3];
 const INACTIVE_CIRCLE_SCALES = [0.92, 0.9, 0.92, 0.9];
+const CENTURY_IMAGE_PREVIEW_FRAMING = [
+  { scale: 1.14, position: '50% 38%' }, // S. XVII
+  { scale: 1.08, position: '50% 42%' }, // S. XVIII
+  { scale: 1.1, position: '50% 36%' },  // S. XIX
+  { scale: 1.08, position: '50% 34%' }, // S. XX
+];
 const FOUR_K_BASE_WIDTH = 1920;
 const FOUR_K_MAX_SCALE = 1.6;
 const RETURN_REVEAL_MS = 720;
@@ -279,6 +287,7 @@ export default function TimelineHistoricoGijon() {
   const [overlayBackground, setOverlayBackground] = useState(null);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
   const [isIdleVideoVisible, setIsIdleVideoVisible] = useState(true);
+  const [isCreditsOverlayOpen, setIsCreditsOverlayOpen] = useState(false);
   const wrapperRef = useRef(null);
   const conflictTitleWrapRef = useRef(null);
   const dotRefs = useRef({});
@@ -404,7 +413,7 @@ export default function TimelineHistoricoGijon() {
   const isSoldadoLineaTitle = selectedBandoName === 'Soldado de Línea';
   const isSoldado1808Title = selectedBandoName === 'Soldado 1808';
   const isCuartoArtilleriaTitle = selectedBandoName === 'Cuarto regimiento de artillería';
-  const isMilicianosTitle = selectedBandoName === 'Milicianos';
+  const isMilicianasTitle = selectedBandoName === 'Milicianas';
   const selectedBandoHotspots = selectedBando?.hotspots ?? activeConflict?.hotspots ?? [];
   const viewportScale = useMemo(() => getViewportScale(viewportWidth), [viewportWidth]);
   const isMobile = viewportWidth <= MOBILE_BREAKPOINT;
@@ -454,6 +463,8 @@ export default function TimelineHistoricoGijon() {
     setIsIdleVideoVisible(false);
     scheduleIdleMode();
   }, [scheduleIdleMode]);
+  const openCreditsOverlay = useCallback(() => setIsCreditsOverlayOpen(true), []);
+  const closeCreditsOverlay = useCallback(() => setIsCreditsOverlayOpen(false), []);
   const registerUserActivity = useCallback(() => {
     if (isIdleVideoVisible) return;
     scheduleIdleMode();
@@ -1066,6 +1077,44 @@ export default function TimelineHistoricoGijon() {
   );
 
   /**
+   * Vuelve de la vista de bandos al timeline manteniendo el conflicto actual.
+   *
+   * @returns {void}
+   */
+  const handleBackToTimelineCurrent = useCallback(() => {
+    if (revealTimeoutRef.current) {
+      window.clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = null;
+    }
+    if (pendingDotSwitchTimeoutRef.current) {
+      window.clearTimeout(pendingDotSwitchTimeoutRef.current);
+      pendingDotSwitchTimeoutRef.current = null;
+    }
+
+    const targetSigloIndex = activeConflictEntry?.sigloIndex ?? sigloIdx;
+    blurFocusedElement();
+    setForcedRevealSigloIdx(targetSigloIndex);
+    setBandoViewSigloIdx(null);
+    setSelectedBandoIndex(null);
+    setIsMobileBandoInfoOpen(false);
+    setSigloIdx(targetSigloIndex);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const focusRatio = getSigloFocusRatio(targetSigloIndex);
+        scrollToSigloInTimeline(targetSigloIndex, 'auto', focusRatio);
+        updateExpandedDots();
+      });
+    });
+
+    revealTimeoutRef.current = window.setTimeout(() => {
+      setForcedRevealSigloIdx(null);
+      updateExpandedDots();
+      revealTimeoutRef.current = null;
+    }, RETURN_REVEAL_MS);
+  }, [activeConflictEntry, blurFocusedElement, scrollToSigloInTimeline, sigloIdx, updateExpandedDots]);
+
+  /**
    * Renderiza un nodo de siglo en la línea de tiempo.
    *
    * @param {{sigloIndex: number}} entry
@@ -1125,6 +1174,10 @@ export default function TimelineHistoricoGijon() {
     const imageHoleHeight = hasHorizontalRectEffect ? Math.round(imageHoleSize * 0.86) : imageHoleSize;
     const centuryImageTitle = getImageTitle(centuryImage, fallbackTitle);
     const activeCenturyTitleOffset = Math.round(imageHoleHeight / 2 + scaleTimelinePx(isMobile ? 10 : 12));
+    const centuryImagePreviewFraming = CENTURY_IMAGE_PREVIEW_FRAMING[index] ?? {
+      scale: 1.08,
+      position: '50% 50%',
+    };
     const pillWidth = scaleTimelinePx(SIGLO_PILL_WIDTH);
     const pillDisplayWidth = Math.max(pillWidth, Math.round(displayBlockWidth * 0.94));
     const centerMaskWidth = displayBlockWidth + scaleTimelinePx(isMobile ? 68 : 96);
@@ -1216,14 +1269,33 @@ export default function TimelineHistoricoGijon() {
             style={{
               width: `${imageHoleWidth}px`,
               height: `${imageHoleHeight}px`,
+              overflow: 'hidden',
               backgroundColor: centuryImage ? 'transparent' : '#fff',
-              backgroundImage: centuryImage ? `url(${centuryImage})` : 'none',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
               opacity: 1,
               transition: 'width 0.35s ease, height 0.35s ease',
             }}
-          />
+          >
+            {centuryImage ? (
+              <img
+                src={centuryImage}
+                alt=""
+                aria-hidden="true"
+                draggable="false"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: centuryImagePreviewFraming.position,
+                  transform: `scale(${centuryImagePreviewFraming.scale})`,
+                  transformOrigin: 'center center',
+                  filter: 'grayscale(100%) contrast(1.06)',
+                  pointerEvents: 'none',
+                  userSelect: 'none',
+                  WebkitUserDrag: 'none',
+                }}
+              />
+            ) : null}
+          </span>
           {isActive && centuryImageTitle && (
             <span
               className="pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 font-semibold"
@@ -1232,12 +1304,18 @@ export default function TimelineHistoricoGijon() {
                 width: `${Math.max(imageHoleWidth, scaleTimelinePx(isMobile ? 94 : 120))}px`,
                 fontSize: `${((isMobile ? 0.56 : 0.64) * viewportScale).toFixed(3)}rem`,
                 letterSpacing: '0.02em',
-                lineHeight: 1,
+                lineHeight: 1.14,
                 fontFamily: '"Mulish", sans-serif',
                 color: '#050505',
-                textAlign: 'right',
+                textAlign: 'center',
                 textTransform: 'none',
-                whiteSpace: 'nowrap',
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
                 textShadow: 'none',
                 opacity: 0.95,
               }}
@@ -1455,6 +1533,44 @@ export default function TimelineHistoricoGijon() {
         />
       )}
       <div className="relative h-full w-full">
+        {!isBandoView && (
+          <button
+            type="button"
+            onClick={openCreditsOverlay}
+            className="pointer-events-auto absolute right-0 top-0 z-50 rounded-[3px] border transition-all duration-200"
+            style={{
+              right: `${scalePx(isMobile ? 10 : 14)}px`,
+              top: `${scalePx(isMobile ? 10 : 14)}px`,
+              width: `${scalePx(isMobile ? 56 : 64)}px`,
+              height: `${scalePx(isMobile ? 56 : 64)}px`,
+              backgroundColor: 'transparent',
+              borderColor: 'transparent',
+              borderWidth: '0px',
+              boxShadow: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0px',
+            }}
+            aria-label="Abrir información y créditos"
+            title="Información y créditos"
+          >
+            <img
+              src={infoIcon}
+              alt=""
+              aria-hidden="true"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                WebkitUserDrag: 'none',
+              }}
+            />
+          </button>
+        )}
+
         <div
           className="absolute inset-0"
           aria-hidden={isBandoView}
@@ -1545,6 +1661,47 @@ export default function TimelineHistoricoGijon() {
               </p>
             </div>
           </div>
+
+          {isBandoView && (
+            <button
+              type="button"
+              onClick={handleBackToTimelineCurrent}
+              className="pointer-events-auto absolute right-0 top-0 z-35 rounded-[3px] border font-black transition-all duration-200"
+              style={{
+                right: `${scalePx(isMobile ? 10 : 14)}px`,
+                top: `${scalePx(isMobile ? 10 : 14)}px`,
+                width: `${scalePx(isMobile ? 68 : 80)}px`,
+                height: `${scalePx(isMobile ? 68 : 80)}px`,
+                backgroundColor: 'transparent',
+                color: '#000',
+                borderColor: 'transparent',
+                borderWidth: '0px',
+                boxShadow: 'none',
+                fontSize: `${((isMobile ? 1.0 : 1.15) * viewportScale).toFixed(3)}rem`,
+                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0px',
+              }}
+              aria-label="Volver al timeline"
+              title="Volver al timeline"
+            >
+              <img
+                src={casitaNegraIcon}
+                alt=""
+                aria-hidden="true"
+                style={{
+                  width: '400px',
+                  height: '400px',
+                  objectFit: 'contain',
+                  pointerEvents: 'none',
+                  userSelect: 'none',
+                  WebkitUserDrag: 'none',
+                }}
+              />
+            </button>
+          )}
 
           {isMobile && isBandoView && (
             <div
@@ -1699,7 +1856,7 @@ export default function TimelineHistoricoGijon() {
                         ? 1.06
                         : isSoldadoLineaTitle
                           ? 1.05
-                          : isMilicianosTitle
+                          : isMilicianasTitle
                             ? 1.05
                             : 1
                 }
@@ -1712,7 +1869,7 @@ export default function TimelineHistoricoGijon() {
                         ? '-1%'
                         : isSoldadoLineaTitle
                           ? '-1%'
-                      : isMilicianosTitle
+                      : isMilicianasTitle
                             ? '-1%'
                             : '0%'
                 }
@@ -1900,10 +2057,45 @@ export default function TimelineHistoricoGijon() {
               width: 'min(92vw, 1800px)',
               maxHeight: '90vh',
               height: 'auto',
-              filter: 'drop-shadow(0 14px 28px rgba(0, 0, 0, 0.46))',
+              filter: 'grayscale(100%) contrast(1.06) drop-shadow(0 14px 28px rgba(0, 0, 0, 0.46))',
             }}
             onClick={(event) => event.stopPropagation()}
           />
+        </div>
+      )}
+
+      {isCreditsOverlayOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="absolute inset-0 bg-black"
+          style={{ zIndex: 95 }}
+          onClick={closeCreditsOverlay}
+        >
+          <button
+            type="button"
+            aria-label="Cerrar créditos"
+            onClick={closeCreditsOverlay}
+            className="absolute right-4 top-4 z-92 rounded-xs border border-white/55 bg-black px-3 py-1 text-sm font-semibold text-[#fff8f1]"
+          >
+            Cerrar
+          </button>
+          <div
+            className="flex h-full w-full items-center justify-center px-6 text-center"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p
+              style={{
+                fontSize: `${((isMobile ? 0.9 : 1.08) * viewportScale).toFixed(3)}rem`,
+                letterSpacing: '0.08em',
+                color: 'rgba(255, 248, 241, 0.78)',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+              }}
+            >
+              Espacio reservado para imagen de créditos
+            </p>
+          </div>
         </div>
       )}
 

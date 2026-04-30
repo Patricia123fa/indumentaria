@@ -18,7 +18,7 @@ import cuartoPluma from '../assets/prendas_4Artilleria/pluma.webp';
 import cuartoPlumaFragmento from '../assets/prendas_4Artilleria/plumon_fragmento.webp';
 import cuartoChaleco from '../assets/prendas_4Artilleria/chaleco-detalle.webp';
 import cuartoChalecoFragmento from '../assets/prendas_4Artilleria/chaleco_fragmento.webp';
-import cuartoPantalon from '../assets/prendas_4Artilleria/Detalle pantalón.webp';
+import cuartoPantalon from '../assets/prendas_4Artilleria/Detalle pantalón (2).webp';
 import cuartoPantalonFragmento from '../assets/prendas_4Artilleria/pantalon_fragmento (1).webp';
 import soldado1808Botones from '../assets/prendas_1808/botones.webp';
 import soldado1808BotonesFragmento from '../assets/prendas_1808/botones_cacho.webp';
@@ -27,6 +27,7 @@ import soldado1808CamisaFragmento from '../assets/prendas_1808/camisa_cacho.webp
 import soldado1808Panuelo from '../assets/prendas_1808/pañuelo negro.webp';
 import soldado1808PanueloFragmento from '../assets/prendas_1808/pañuelo_cacho (1).webp';
 import soldado1808GorroFragmento from '../assets/prendas_1808/Sketch_fragmento gorro.webp';
+import soldado1808GorroDetalle from '../assets/prendas_1808/conjunto de gorros copia.webp';
 import isabelinoGorro from '../assets/prendas_isabelinos/gorro.webp';
 import isabelinoGorroCacho from '../assets/prendas_isabelinos/isabelain_fragmento gorro.webp';
 import isabelinoPenacho from '../assets/prendas_isabelinos/penacho.webp';
@@ -99,6 +100,7 @@ export const HISTORIA = [
   {
     siglo: "S. XVII",
     etiqueta: "Siglo XVII",
+    pieDeFoto: "Infantería Antigua: Tercios del S.XVII. Archivo de la BNE.",
     acento: "#bf8c6d",
     fondo: fondo4,
     conflictos: [
@@ -159,6 +161,7 @@ export const HISTORIA = [
   {
     siglo: "S. XVIII",
     etiqueta: "Siglo XVIII",
+    pieDeFoto: "Alegoría de la sucesión de la corona española, 1700. Archivo de la BNE.",
     acento: "#7fa9d6",
     fondo: fondo3,
     conflictos: [
@@ -219,6 +222,7 @@ export const HISTORIA = [
   {
     siglo: "S. XIX",
     etiqueta: "Siglo XIX",
+    pieDeFoto: "Señores. 2º Batallón del Regimiento de Cuba, 1898. Archivo de la BNE.",
     acento: "#6b7456",
     fondo: fondo5,
     conflictos: [
@@ -242,12 +246,12 @@ export const HISTORIA = [
               {
                 image: soldado_1808,
                 overlayImage: soldado1808GorroFragmento,
-                detailImage: soldado1808GorroFragmento,
+                detailImage: soldado1808GorroDetalle,
                 label: 'Sombrero',
-                detalle: 'El sombrero de copa baja y ala frontal servía para proteger del sol y de la lluvia ligera, además de aportar identidad visual al uniforme de campaña.',
+                detalle: 'El sombrero redondo era el utilizado para las ocasiones de gala. En la batalla, utilizaban normalmente el gorrillo que solía bajarse para tapar la mejilla del lado en el que disparaba el compañero de tiro, ya que podían salir despedidos restos de pólvora hacia la cara. El resto del tiempo, llevaban la borla recogida formando lo que posteriormente se convertiría en el gorro isabelino que todos conocemos.',
                 estilo: { top: '8.6%', left: '45.8%' },
                 overlayOffsetY: '0%',
-                imageScaleMultiplier: 1.45,
+                imageScaleMultiplier: 2.2,
                 overlayHit: { top: '2.2%', left: '34.2%', width: '24.6%', height: '12.2%', borderRadius: '52%' },
               },
               {
@@ -277,7 +281,7 @@ export const HISTORIA = [
                 overlayImage: soldado1808BotonesFragmento,
                 detailImage: soldado1808Botones,
                 label: 'Botón',
-                detalle: 'Estos botones pertenece al Regimiento de Nobles de Asturias, creado en 1794. Como su nombre indica, estaba formado por miembros de la hidalguía y familias nobles. Los botones en este siglo, eran identificadores del regimiento, pero en el espacio de un botón con las prensas de la época, era necesario usar abreviaturas, ya que no entraba la palabra entera.',
+                detalle: 'Estos botones pertenecen al Regimiento de Nobles de Asturias, creado en 1794. Como su nombre indica, estaba formado por miembros de la hidalguía y familias nobles. Los botones en este siglo, eran identificadores del regimiento, pero en el espacio de un botón con las prensas de la época, era necesario usar abreviaturas, ya que no entraba la palabra entera.',
                 estilo: { top: '35.2%', left: '54.0%' },
                 overlayOffsetY: '0%',
                 overlayHit: { top: '34.1%', left: '52.4%', width: '3.3%', height: '2.2%', borderRadius: '50%' },
@@ -316,8 +320,8 @@ export const HISTORIA = [
                 image: cuartoPantalon,
                 overlayImage: cuartoPantalonFragmento,
                 detailImage: cuartoPantalon,
-                label: "Pantalón",
-                detalle: "El pantalón completaba la silueta del uniforme y caía de forma recta para acompañar las botas altas. En artillería, esta parte inferior del conjunto era clave para mantener una apariencia limpia y disciplinada, además de soportar mejor el uso diario en campaña.",
+                label: "Calzón",
+                detalle: "Las cremalleras no aparecen hasta finales del S.XIX, por lo que los cierres se realizaban con botones y cordones. El sistema se llamaba alzapón, y consistía en una solapa rectangular que cerraba toda la parte de la ingle, abotonada en sus laterales. En la parte posterior, había un corte en forma de V, que permitía el ajuste del calzón con un cordón, ya que eran prendas que duraban toda la vida, y necesitaban ajustarse a los cambios corporales.",
                 estilo: { top: "61.2%", left: "48.8%" },
                 overlayOffsetY: "0%",
                 imageScaleMultiplier: 0.86,
@@ -484,7 +488,7 @@ export const HISTORIA = [
                 image: rayadilloMangasFragmento,
                 overlayImage: rayadilloMangasFragmento,
                 detailImage: rayadilloMangaDetalle,
-                label: 'Mangas',
+                label: 'Puños',
                 detalle: 'El color verde indica la unidad militar, la Infantería de Línea. Las 3 rayas que podemos ver en el uniforme indican el rango que poseía, siendo estas pertenecientes a un Capitán de Cazadores. Estas mangas también podían llevar unas estrellas bordadas, pero cuando empezaron las guerras estas identificaciones de color y líneas eran una señal de a quién atacar, y muchos acabaron por quitarlo y dejar el rayadillo sin ningún color ni distintivo.',
                 estilo: { top: '56%', left: '49%' },
                 overlayOffsetY: '0%',
@@ -500,6 +504,7 @@ export const HISTORIA = [
   {
     siglo: "S. XX",
     etiqueta: "Siglo XX",
+    pieDeFoto: "Desfile de Milicianas, Luis Vida, Valencia. Archivo de la BNE.",
     acento: "#c1a04d",
     fondo: fondo2,
     conflictos: [
@@ -558,7 +563,7 @@ export const HISTORIA = [
       {
         id: "guerra-civil",
         nombre: "Guerra Civil",
-        subtitulo: "Milicianos",
+        subtitulo: "Milicianas",
         posicion: "bottom",
         descripcionBreve: "Movilización de milicias populares de Gijón con gorra simple y mono de trabajo.",
         destacado: true,
@@ -605,9 +610,9 @@ export const HISTORIA = [
             hotspots: [],
           },
           {
-            nombre: "Milicianos",
+            nombre: "Milicianas",
             base: miliciana2,
-            descripcion: "El uniforme más icónico del miliciano republicano en Gijón no fue el uniforme anterior, sino el mono azul o caqui. La ropa de los obreros convertida en ropa de combate. Los soldados republicanos en Asturias usan el casco Trubia (fabricado aquí mismo, en la Fábrica de Trubia) o el casco checo/soviético que llegaba por el puerto de El Musel.\n\nEran personas de las calles que tomaron los fusiles y después fueron al frente con lo que tenían a mano. Cuando nos referimos a lo que tenían cercano no es solo ropa civil, sino una amalgama de ropas salidas de casas y cuarteles.",
+            descripcion: "El uniforme más icónico de la miliciana republicana en Gijón no fue el uniforme anterior, sino el mono azul o caqui. La ropa de los obreros convertida en ropa de combate. Las milicianas republicanas en Asturias usan el casco Trubia (fabricado aquí mismo, en la Fábrica de Trubia) o el casco checo/soviético que llegaba por el puerto de El Musel.\n\nEran personas de las calles que tomaron los fusiles y después fueron al frente con lo que tenían a mano. Cuando nos referimos a lo que tenían cercano no es solo ropa civil, sino una amalgama de ropas salidas de casas y cuarteles.",
             alineacion: "left",
             overlayHotspots: [
               {
@@ -659,8 +664,8 @@ export const HISTORIA = [
                 image: sublevadoGorroFragmento,
                 overlayImage: sublevadoGorroFragmento,
                 detailImage: sublevadoGorroDetalle,
-                label: 'Isabelino',
-                detalle: 'El gorro isabelino, era una tradición militar muy popular en España, y era básico en la uniformidad del ejército de la época. En el caso de la legión, llevaba una borla roja característica. Los milicianos también lo vistieron porque usaban lo que podían encontrar o uniformes militares estándar, y le añadían insignias como estrellas, quitando la borla en ocasiones.',
+                label: 'Gorro Isabelino',
+                detalle: 'El gorro isabelino, era una tradición militar muy popular en España, y era básico en la uniformidad del ejército de la época. En el caso de la legión, llevaba una borla roja característica. Las milicianas también lo vistieron porque usaban lo que podían encontrar o uniformes militares estándar, y le añadían insignias como estrellas, quitando la borla en ocasiones.',
                 estilo: { top: '15%', left: '50%' },
                 overlayOffsetY: '0%',
                 imageScaleMultiplier: 1.42,
@@ -693,4 +698,3 @@ export const HISTORIA = [
     ]
   }
 ];
-
