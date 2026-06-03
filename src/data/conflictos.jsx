@@ -2,15 +2,15 @@
 import fondo3 from '../assets/fondo3.avif';
 import fondo4 from '../assets/fondo4.avif';
 import fondo5 from '../assets/fondo5.avif';
-import carlista from '../assets/Carlista2.avif';
+import carlista from '../assets/Carlista.webp';
 import isabelino from '../assets/isabelino.webp';
 import uniforme1926Base from '../assets/1926.webp';
-import miliciana2 from '../assets/miliciana_2 copia.webp';
+import miliciana2 from '../assets/miliciana_2 copia (1).webp';
 import miliciasUrbanas from '../assets/SXVII_2 copia (1).webp';
 import Rayadillo_34 from '../assets/Rayadillo_3.avif';
 import republicanoSxx from '../assets/segunda republica (1).webp';
 import soldado_1808 from '../assets/soldado_1808.webp';
-import soldado_Linea2 from '../assets/Soldado_Linea2.avif';
+import soldadoLinea from '../assets/soldadoLinea.png';
 import sublevadoSxx from '../assets/soldado infanteria-verano (1).webp';
 import guerraHispanoAmericana from '../assets/guerra hispano-americana.webp';
 import regimiento4 from '../assets/4regimiento.webp';
@@ -35,9 +35,10 @@ import isabelinoPenachoCacho from '../assets/prendas_isabelinos/isabelain_fragme
 import isabelinoFlecos from '../assets/prendas_isabelinos/flecos traje.webp';
 import isabelinoHombreraCacho from '../assets/prendas_isabelinos/isabelain-hombrera cacho.webp';
 import carlistaBoina from '../assets/prendas_carlistas/boina carlista.webp';
-import carlistaBoinaCacho from '../assets/prendas_carlistas/gorro_carlista_cacho.webp';
+import carlistaBoinaCacho from '../assets/prendas_carlistas/boina.png';
 import carlistaAlpargates from '../assets/prendas_carlistas/alpargates carlistas.webp';
 import carlistaAlpargatesCacho from '../assets/prendas_carlistas/alpargatas_carlistas_cacho.webp';
+import alpargatesImage from '../assets/Alpargates.webp';
 import prendaCamisa from '../assets/prendas_miliciasUrbanas/Camisa.webp';
 import prendaBandaRoja from '../assets/prendas_miliciasUrbanas/Banda_roja.webp';
 import apostolesCacho from '../assets/apostoles_cacho.webp';
@@ -79,7 +80,7 @@ import milicianaCalzado from '../assets/prendas_milicianas/miliciana_calzado.web
 import milicianaCascoTrubia from '../assets/prendas_milicianas/casco-trubia.webp';
 import milicianaCascoFragmento from '../assets/prendas_milicianas/miliciana_casco fragmento.webp';
 import milicianaMonoFragmento from '../assets/prendas_milicianas/miliciana_mono fragmento (1).webp';
-import milicianaZapatosFragmento from '../assets/prendas_milicianas/miliciana_fragmento zapatos.webp';
+import milicianaZapatosFragmento from '../assets/miliciana_recorte zapatos.png';
 import sublevadoGorroFragmento from '../assets/prendas_sublevado/soldado sublevado_gorretu.webp';
 import sublevadoCartucherasFragmento from '../assets/prendas_sublevado/soldado sublevado_cartucheras.webp';
 import sublevadoCartucherasDetalle from '../assets/prendas_sublevado/cartucheras.webp';
@@ -120,16 +121,18 @@ export const HISTORIA = [
             base: miliciasUrbanas,
             overlayHotspots: [
               {
+                id: "s17-panuelo-rojo",
                 image: prendaBandaRoja,
                 overlayImage: capaBrazalete,
-                label: "Banda roja",
-                detalle: "Era el principal distintivo de los Tercios españoles y de los ejércitos de la Monarquía Hispánica durante los siglos XVI y XVII. Los rangos más altos podían llevarla cruzada en el pecho.",
+                label: "Pañuelo rojo",
+                detalle: "Era un distintivo muy visible en las milicias urbanas y en las tropas de la Monarquía Hispánica durante los siglos XVI y XVII. Los rangos más altos podían llevarlo cruzado en el pecho.",
                 estilo: { top: "29.4%", left: "72.8%" },
                 overlayOffsetY: "0%",
                 imageScaleMultiplier: 1.3,
                 overlayHit: { top: "26.8%", left: "66.5%", width: "12.6%", height: "5.1%", borderRadius: "50%" },
               },
               {
+                id: "s17-jubon",
                 image: prendaCamisa,
                 overlayImage: fragmentoCamisa,
                 label: "jubón",
@@ -140,6 +143,7 @@ export const HISTORIA = [
                 overlayHit: { top: "23.1%", left: "20.3%", width: "14.1%", height: "24.6%", borderRadius: "12%" },
               },
               {
+                id: "s17-12-apostoles",
                 image: apostolesCacho,
                 detailImage: apostolesDetalle,
                 label: "12 apóstoles",
@@ -178,7 +182,7 @@ export const HISTORIA = [
         bandos: [
           {
             nombre: "Soldado de Línea",
-            base: soldado_Linea2,
+            base: soldadoLinea,
             descripcion: "La llegada de los Borbones a España supuso la reorganización de los antiguos Tercios, que fueron sustituidos por Regimientos. Este cambio dio paso a ejércitos más reducidos, pero mejor adiestrados, remunerados, uniformados y alimentados.\n\n Bajo este nuevo modelo, todos los soldados vestían igual; una medida de la administración borbónica para fomentar el orgullo, la camaradería y la lealtad compartida, concepto conocido en francés como esprit de corps. En este contexto, el Regimiento de Infantería Asturias representado aquí, desempeñó un papel fundamental durante las campañas en Italia.",
             overlayHotspots: [
               {
@@ -643,7 +647,7 @@ export const HISTORIA = [
                 image: milicianaCalzado,
                 overlayImage: milicianaZapatosFragmento,
                 overlayHitImage: milicianaZapatosFragmento,
-                detailImage: milicianaCalzado,
+                detailImage: alpargatesImage,
                 label: 'Alpargatas',
                 detalle: 'En la España de los años 30, las alpargatas eran el calzado más usado. Las usaban los campesinos, obreros, mineros, soldados y voluntarios. Con el comienzo de la Guerra Civil, los trabajadores que se sumaron a la defensa de la República, utilizaron la vestimenta que tenían a mano.',
                 estilo: { top: '83%', left: '50%' },

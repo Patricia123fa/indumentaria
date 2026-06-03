@@ -1,4 +1,4 @@
-import TimelineHistoricoGijon from './components/TimelineHistoricoGijon';
+import TimelineHistoricoGijon from './pages/TimelineHistoricoGijon';
 
 export default function App() {
   return <TimelineHistoricoGijon />;

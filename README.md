@@ -1,16 +1,25 @@
-# React + Vite
+# Proyecto indumentaria
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación React/Vite preparada para uso local sin internet.
 
-Currently, two official plugins are available:
+## Modo museo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Instala dependencias una sola vez con `npm install`.
+2. Genera la versión de escritorio con `npm run build:desktop`.
+3. En `release/` tendrás el instalador `NSIS` y el `.exe` portable.
+4. Si solo quieres probar la web local, usa `npm run preview:local`.
 
-## React Compiler
+## Despliegue offline
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- La salida de `build` usa rutas relativas por defecto, así que el `dist` se puede copiar a otra carpeta o equipo.
+- Todas las imágenes, fuentes y vídeos usados por la app están dentro del proyecto.
+- No hay dependencias de CDN ni recursos externos en tiempo de ejecución.
+- La app de escritorio abre directamente el `dist/index.html`, sin necesitar servidor local.
 
-## Expanding the ESLint configuration
+## Scripts
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `npm run dev`: desarrollo local.
+- `npm run build`: genera la versión portable para local.
+- `npm run build:indumentaria`: genera el build pensado para una ruta fija como `/indumentaria/`.
+- `npm run build:desktop`: genera instalador y `.exe` portable en `release/`.
+- `npm run preview:local`: sirve el build en `127.0.0.1`.
