@@ -520,33 +520,14 @@ body {
   filter: drop-shadow(0 20px 34px rgba(0, 0, 0, 0.5));
 }
 
-.timeline-mannequin-overlay-outline {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform-origin: 50% 58%;
-  pointer-events: none;
-  mix-blend-mode: normal;
-  filter:
-    brightness(0)
-    saturate(0)
-    opacity(1)
-    drop-shadow(0 0 1px rgba(255, 255, 255, 0.92))
-    drop-shadow(0 0 3px rgba(255, 255, 255, 0.5))
-    drop-shadow(0 0 6px rgba(255, 255, 255, 0.18));
-  transform: scale(1.018);
-  animation-name: timeline-mannequin-overlay-blink;
-  animation-duration: 2.35s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  will-change: transform, opacity;
-}
-
+.timeline-mannequin-overlay-cue,
 .timeline-mannequin-overlay-image {
+  --overlay-glow-soft: rgba(255, 255, 255, 0.22);
+  --overlay-glow-strong: rgba(255, 255, 255, 0.42);
+  --overlay-brightness: 1.16;
+  --overlay-saturation: 1.08;
+  --overlay-min-opacity: 0.54;
+  --overlay-max-opacity: 0.78;
   position: absolute;
   inset: 0;
   z-index: 4;
@@ -556,28 +537,150 @@ body {
   transform-origin: 50% 58%;
   pointer-events: none;
   mix-blend-mode: normal;
+  transform: translateY(var(--overlay-offset-y, 0%)) scale(1);
+}
+
+.timeline-mannequin-overlay-cue {
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-mask-image: var(--overlay-mask-image);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-image: var(--overlay-mask-image);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
   filter:
-    drop-shadow(0 0 4px rgba(255, 255, 255, 0.24))
-    drop-shadow(0 0 10px rgba(255, 255, 255, 0.12));
-  opacity: 0.99;
-  animation-name: timeline-mannequin-overlay-blink;
-  animation-duration: 2.35s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
+    drop-shadow(0 0 2px var(--overlay-glow-strong))
+    drop-shadow(0 0 9px var(--overlay-glow-soft));
+  opacity: 0.18;
+  animation: timeline-mannequin-overlay-cue-pulse 2.4s ease-in-out infinite;
+  animation-delay: var(--overlay-pulse-delay, 0ms);
   will-change: transform, opacity;
 }
 
-.timeline-mannequin-overlay-image-active {
+.timeline-mannequin-overlay-image {
+  z-index: 4;
   filter:
-    drop-shadow(0 0 6px rgba(255, 231, 122, 0.34))
-    drop-shadow(0 0 14px rgba(255, 205, 58, 0.22));
+    brightness(var(--overlay-brightness))
+    saturate(var(--overlay-saturation))
+    drop-shadow(0 0 2px var(--overlay-glow-strong))
+    drop-shadow(0 0 8px var(--overlay-glow-soft));
+  opacity: 0.7;
+  transition:
+    filter 160ms ease,
+    opacity 160ms ease;
+  will-change: opacity;
+}
+
+.timeline-mannequin-overlay-cue-red,
+.timeline-mannequin-overlay-image-red {
+  --overlay-glow-soft: rgba(225, 78, 28, 0.2);
+  --overlay-glow-strong: rgba(255, 166, 120, 0.48);
+  --overlay-brightness: 1.12;
+  --overlay-saturation: 1.2;
+  --overlay-min-opacity: 0.56;
+  --overlay-max-opacity: 0.8;
+}
+
+.timeline-mannequin-overlay-cue-blue,
+.timeline-mannequin-overlay-image-blue {
+  --overlay-glow-soft: rgba(160, 210, 255, 0.22);
+  --overlay-glow-strong: rgba(222, 242, 255, 0.5);
+  --overlay-brightness: 1.18;
+  --overlay-saturation: 1.08;
+  --overlay-min-opacity: 0.54;
+  --overlay-max-opacity: 0.78;
+  --overlay-cue-colorize: sepia(0.34) saturate(4.8) hue-rotate(168deg) brightness(1.04);
+  --overlay-image-colorize: sepia(0.24) saturate(2.6) hue-rotate(170deg) brightness(1.02);
+}
+
+.timeline-mannequin-overlay-cue-active {
+  opacity: 0.36;
+  animation: none;
+  transform: translateY(var(--overlay-offset-y, 0%)) scale(1.006);
+}
+
+.timeline-mannequin-overlay-image-active {
+  --overlay-glow-soft: rgba(255, 218, 128, 0.32);
+  --overlay-glow-strong: rgba(255, 250, 225, 0.74);
+  --overlay-brightness: 1.24;
+  --overlay-saturation: 1.16;
   opacity: 1;
+  filter:
+    brightness(var(--overlay-brightness))
+    saturate(var(--overlay-saturation))
+    drop-shadow(0 0 2px var(--overlay-glow-strong))
+    drop-shadow(0 0 10px var(--overlay-glow-soft));
+}
+
+.timeline-mannequin-overlay-image-red.timeline-mannequin-overlay-image-active {
+  --overlay-glow-soft: rgba(236, 92, 36, 0.38);
+  --overlay-glow-strong: rgba(255, 214, 192, 0.82);
+  --overlay-brightness: 1.18;
+  --overlay-saturation: 1.28;
+}
+
+.timeline-mannequin-overlay-cue-red.timeline-mannequin-overlay-cue-active {
+  opacity: 0.42;
+}
+
+.timeline-mannequin-overlay-cue-red {
+  background: rgba(214, 56, 18, 0.96);
+  opacity: 0.28;
+  mix-blend-mode: screen;
+  filter:
+    drop-shadow(0 0 2px rgba(255, 214, 192, 0.78))
+    drop-shadow(0 0 10px rgba(228, 72, 24, 0.36));
+}
+
+.timeline-mannequin-overlay-image-red {
+  opacity: 0.82;
+  mix-blend-mode: screen;
+  filter:
+    brightness(0.2)
+    sepia(1)
+    saturate(7)
+    hue-rotate(-30deg)
+    brightness(0.9)
+    contrast(1.08)
+    drop-shadow(0 0 2px rgba(255, 214, 192, 0.78))
+    drop-shadow(0 0 8px rgba(228, 72, 24, 0.32));
+}
+
+.timeline-mannequin-overlay-cue-blue {
+  background: rgba(214, 236, 255, 0.96);
+}
+
+.timeline-mannequin-overlay-image-red.timeline-mannequin-overlay-image-active {
+  opacity: 1;
+  filter:
+    brightness(0.22)
+    sepia(1)
+    saturate(8)
+    hue-rotate(-30deg)
+    brightness(0.98)
+    contrast(1.12)
+    drop-shadow(0 0 2px rgba(255, 232, 220, 0.9))
+    drop-shadow(0 0 10px rgba(240, 84, 28, 0.42));
+}
+
+@keyframes timeline-mannequin-overlay-cue-pulse {
+  0%,
+  100% {
+    opacity: 0.14;
+    transform: translateY(var(--overlay-offset-y, 0%)) scale(1);
+  }
+  50% {
+    opacity: 0.42;
+    transform: translateY(var(--overlay-offset-y, 0%)) scale(1.008);
+  }
 }
 
 .timeline-mannequin-overlay-hotspot {
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   display: block;
   border: none;
   padding: 0;
@@ -599,16 +702,6 @@ body {
   0%,
   100% {
     opacity: 0.88;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes timeline-mannequin-overlay-blink {
-  0%,
-  100% {
-    opacity: 0;
   }
   50% {
     opacity: 1;

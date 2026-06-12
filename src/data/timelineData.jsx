@@ -37,18 +37,32 @@ export const collectBandoImageSources = (bando) => {
   return [...sources];
 };
 
-export const preloadImageSource = (source) =>
-  new Promise((resolve) => {
-    const image = new Image();
-    image.decoding = 'async';
-    image.onload = () => resolve();
-    image.onerror = () => resolve();
-    image.src = source;
+const preloadedImagePromises = new Map();
 
-    if (typeof image.decode === 'function') {
-      image.decode().then(resolve).catch(resolve);
-    }
-  });
+export const preloadImageSource = (source) =>
+  {
+    if (typeof source !== 'string') return Promise.resolve();
+    const trimmedSource = source.trim();
+    if (!trimmedSource) return Promise.resolve();
+
+    const cachedPromise = preloadedImagePromises.get(trimmedSource);
+    if (cachedPromise) return cachedPromise;
+
+    const nextPromise = new Promise((resolve) => {
+      const image = new Image();
+      image.decoding = 'async';
+      image.onload = () => resolve();
+      image.onerror = () => resolve();
+      image.src = trimmedSource;
+
+      if (typeof image.decode === 'function') {
+        image.decode().then(resolve).catch(resolve);
+      }
+    });
+
+    preloadedImagePromises.set(trimmedSource, nextPromise);
+    return nextPromise;
+  };
 
 const PREFERRED_SIGLO_ORDER = ['S. XVII', 'S. XVIII', 'S. XIX', 'S. XX'];
 const SXX_CONFLICT_ORDER = ['pre-guerra', 'guerra-civil'];

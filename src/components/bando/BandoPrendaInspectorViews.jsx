@@ -33,66 +33,6 @@ export function PrendaArrowSticker({ arrowGeometry, isMobile, showArrows }) {
   );
 }
 
-export function OverlayOutlineFilter({
-  filterId,
-  useHeavyOverlayEffects,
-  dilateRadius,
-  blur,
-  color,
-  opacity,
-}) {
-  if (!useHeavyOverlayEffects) return null;
-
-  return (
-    <svg
-      aria-hidden="true"
-      focusable="false"
-      width="0"
-      height="0"
-      style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
-    >
-      <defs>
-        <filter
-          id={filterId}
-          x="-20%"
-          y="-20%"
-          width="140%"
-          height="140%"
-          colorInterpolationFilters="sRGB"
-        >
-          <feMorphology
-            in="SourceAlpha"
-            operator="dilate"
-            radius={dilateRadius}
-            result="dilated"
-          />
-          <feComposite in="dilated" in2="SourceAlpha" operator="out" result="outline" />
-          <feGaussianBlur in="outline" stdDeviation={blur} result="softOutline" />
-          <feFlood floodColor={color} floodOpacity={opacity} result="white" />
-          <feComposite in="white" in2="softOutline" operator="in" result="whiteOutline" />
-          <feMerge>
-            <feMergeNode in="whiteOutline" />
-          </feMerge>
-        </filter>
-      </defs>
-    </svg>
-  );
-}
-
-function getOverlayDropShadow({ hotspotAccentMode, isOverlayActive, useHeavyOverlayEffects }) {
-  if (!useHeavyOverlayEffects) return 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.24))';
-
-  if (hotspotAccentMode === 'red') {
-    return isOverlayActive
-      ? 'drop-shadow(0 0 16px rgba(255, 224, 210, 1)) drop-shadow(0 0 34px rgba(255, 110, 50, 0.94)) drop-shadow(0 0 56px rgba(205, 58, 18, 0.68))'
-      : 'drop-shadow(0 0 12px rgba(255, 169, 132, 0.86)) drop-shadow(0 0 26px rgba(230, 86, 38, 0.64)) drop-shadow(0 0 40px rgba(180, 56, 18, 0.44))';
-  }
-
-  return isOverlayActive
-    ? 'drop-shadow(0 0 16px rgba(255, 255, 255, 1)) drop-shadow(0 0 34px rgba(255, 255, 255, 0.92)) drop-shadow(0 0 56px rgba(255, 255, 255, 0.62))'
-    : 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.88)) drop-shadow(0 0 24px rgba(255, 255, 255, 0.66)) drop-shadow(0 0 38px rgba(255, 255, 255, 0.42))';
-}
-
 export function MannequinStage({
   activeHotspotIndex,
   activeOverlayHotspotKey,
@@ -110,17 +50,13 @@ export function MannequinStage({
   mainImageScaleMultiplier,
   normalizedHotspots,
   normalizedOverlayHotspots,
-  overlayHaloScaleMultiplier,
   overlayHotspotRefs,
   overlayLayerRef,
-  overlayOutlineFilterId,
-  overlayOutlineScale,
   pressedHotspotKey,
   setActiveHotspotIndex,
   setActiveOverlayHotspotKey,
   setOverlayArrowStartPoint,
   setPressedHotspotKey,
-  useHeavyOverlayEffects,
   viewportScale,
 }) {
   return (
@@ -146,7 +82,7 @@ export function MannequinStage({
             decoding="async"
           />
           {normalizedOverlayHotspots.length > 0 ? (
-            normalizedOverlayHotspots.map((overlayHotspot) => {
+            normalizedOverlayHotspots.map((overlayHotspot, overlayHotspotIndex) => {
               const overlayHotspotImage =
                 overlayHotspot.overlayImage ?? mainImageOverlaySrc ?? getHotspotImage(overlayHotspot);
               if (!overlayHotspotImage) return null;
@@ -156,42 +92,44 @@ export function MannequinStage({
               const overlayHotspotLeft =
                 overlayHotspot.estilo?.left ?? overlayHotspot.style?.left ?? '62%';
               const overlayHotspotOffsetY = overlayHotspot.overlayOffsetY ?? '0%';
-              const overlayHitSizePx = Math.max(70, Math.round(78 * viewportScale));
-              const overlayHitArea = overlayHotspot.overlayHit ?? overlayHotspot.hitArea ?? null;
-              const overlayHaloSizePx = overlayHitArea?.haloSize ?? Math.max(42, Math.round(46 * viewportScale));
               const overlayHotspotKey = overlayHotspot.key;
               const isOverlayActive = activeOverlayHotspotKey === overlayHotspotKey;
+              const overlayCueAccentClass =
+                hotspotAccentMode === 'red'
+                  ? 'timeline-mannequin-overlay-cue-red'
+                  : hotspotAccentMode === 'blue'
+                    ? 'timeline-mannequin-overlay-cue-blue'
+                    : '';
+              const overlayImageAccentClass =
+                hotspotAccentMode === 'red'
+                  ? 'timeline-mannequin-overlay-image-red'
+                  : hotspotAccentMode === 'blue'
+                    ? 'timeline-mannequin-overlay-image-blue'
+                    : '';
 
               return (
                 <Fragment key={overlayHotspotKey}>
-                  {useHeavyOverlayEffects ? (
-                    <img
-                      src={overlayHotspotImage}
-                      alt=""
-                      aria-hidden="true"
-                      className="timeline-mannequin-overlay-outline"
-                      decoding="async"
-                      style={{
-                        filter: `url(#${overlayOutlineFilterId})`,
-                        transform: `translateY(${overlayHotspotOffsetY}) scale(${overlayOutlineScale})`,
-                      }}
-                    />
-                  ) : null}
+                  <div
+                    aria-hidden="true"
+                    className={`timeline-mannequin-overlay-cue ${overlayCueAccentClass} ${
+                      isOverlayActive ? 'timeline-mannequin-overlay-cue-active' : ''
+                    }`}
+                    style={{
+                      '--overlay-offset-y': overlayHotspotOffsetY,
+                      '--overlay-pulse-delay': `${(overlayHotspotIndex % 4) * 180}ms`,
+                      '--overlay-mask-image': `url("${overlayHotspotImage}")`,
+                    }}
+                  />
                   <img
                     src={overlayHotspotImage}
                     alt=""
                     aria-hidden="true"
-                    className={`timeline-mannequin-overlay-image ${
+                    className={`timeline-mannequin-overlay-image ${overlayImageAccentClass} ${
                       isOverlayActive ? 'timeline-mannequin-overlay-image-active' : ''
                     }`}
                     decoding="async"
                     style={{
-                      transform: `translateY(${overlayHotspotOffsetY})`,
-                      filter: getOverlayDropShadow({
-                        hotspotAccentMode,
-                        isOverlayActive,
-                        useHeavyOverlayEffects,
-                      }),
+                      '--overlay-offset-y': overlayHotspotOffsetY,
                     }}
                   />
                   <button
@@ -230,18 +168,6 @@ export function MannequinStage({
                       pointerEvents: 'none',
                     }}
                   >
-                    {overlayHotspot.showHalo && useHeavyOverlayEffects ? (
-                      <span
-                        className={`pointer-events-none absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full timeline-prenda-hotspot-halo ${
-                          isOverlayActive ? 'timeline-prenda-hotspot-halo-active' : ''
-                        }`}
-                        style={{
-                          width: `${overlayHaloSizePx * overlayHaloScaleMultiplier}px`,
-                          height: `${overlayHaloSizePx * overlayHaloScaleMultiplier}px`,
-                          ...getHotspotHaloStyle(isOverlayActive),
-                        }}
-                      />
-                    ) : null}
                   </button>
                 </Fragment>
               );

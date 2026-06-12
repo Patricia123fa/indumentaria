@@ -19,16 +19,17 @@
   SIGLO_PILL_WIDTH,
   toTwoLineLabel,
 } from '../../data/timelineData.jsx';
+import { memo } from 'react';
 
-export function CenturyNode({
+function CenturyNodeComponent({
   centuryImages,
-  centuryRefs,
   dragRef,
   entry,
   handleCenturyImageClick,
   handleSigloClick,
   hoveredCenturyIdx,
   isMobile,
+  registerCenturyNode,
   scaleTimelinePx,
   setHoveredCenturyIdx,
   sigloIdx,
@@ -90,13 +91,7 @@ export function CenturyNode({
       key={`siglo-${index}`}
       className="relative flex h-full items-center justify-center"
       style={{ width: `${scaleTimelinePx(220)}px` }}
-      ref={(node) => {
-        if (node) {
-          centuryRefs.current[index] = node;
-        } else {
-          delete centuryRefs.current[index];
-        }
-      }}
+      ref={(node) => registerCenturyNode(index, node)}
     >
       <button
         type="button"
@@ -225,9 +220,8 @@ export function CenturyNode({
   );
 }
 
-export function ConflictDot({
+function ConflictDotComponent({
   activeDotKey,
-  dotRefs,
   entry,
   expandedDotsByKey,
   forcedRevealSigloIdx,
@@ -235,6 +229,7 @@ export function ConflictDot({
   handleBandoClick,
   handleDotClick,
   isMobile,
+  registerDotNode,
   scaleTimelinePx,
   viewportScale,
 }) {
@@ -298,13 +293,7 @@ export function ConflictDot({
         onClick={() => handleDotClick(entry)}
         className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
         aria-label={conflict.nombre}
-        ref={(node) => {
-          if (node) {
-            dotRefs.current[entry.key] = node;
-          } else {
-            delete dotRefs.current[entry.key];
-          }
-        }}
+        ref={(node) => registerDotNode(entry.key, node)}
       >
         <span
           className="absolute left-1/2 top-1/2 block h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-[6px] border-black/80 bg-white/55"
@@ -377,8 +366,11 @@ export function ConflictDot({
                 style={{ width: `${bandoInnerSize}px`, height: `${bandoInnerSize}px` }}
               />
               {labelSide && (
-                <span
-                  className={`pointer-events-none absolute top-1/2 text-[0.82rem] font-bold uppercase tracking-[0.08em] text-black ${labelSide === 'right' ? 'left-full' : 'right-full'}`}
+                <button
+                  type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={() => handleBandoClick(entry, index)}
+                  className={`absolute top-1/2 text-[0.82rem] font-bold uppercase tracking-[0.08em] text-black ${labelSide === 'right' ? 'left-full' : 'right-full'}`}
                   style={{
                     marginLeft: labelSide === 'right' ? `${scaleTimelinePx(10)}px` : '0px',
                     marginRight: labelSide === 'left' ? `${scaleTimelinePx(10)}px` : '0px',
@@ -391,10 +383,17 @@ export function ConflictDot({
                     textShadow: 'none',
                     opacity: isExpanded ? 1 : 0,
                     transition: 'opacity 0.25s ease',
+                    background: 'transparent',
+                    border: '0',
+                    padding: '0',
+                    pointerEvents: isExpanded ? 'auto' : 'none',
+                    cursor: 'pointer',
                   }}
+                  title={bandoName}
+                  aria-label={bandoName}
                 >
                   {bandoLabelText}
-                </span>
+                </button>
               )}
             </button>
           );
@@ -403,4 +402,7 @@ export function ConflictDot({
     </div>
   );
 }
+
+export const CenturyNode = memo(CenturyNodeComponent);
+export const ConflictDot = memo(ConflictDotComponent);
 

@@ -1,14 +1,12 @@
 ﻿import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   getHotspotImage,
-  hexToRgba,
   HOTSPOT_CONTENT_SWITCH_MS,
   resolveSide,
 } from './bandoInspectorData.jsx';
 import {
   MannequinStage,
   MobilePrendaModal,
-  OverlayOutlineFilter,
   PrendaArrowSticker,
 } from './BandoPrendaInspectorViews.jsx';
 import { DesktopPrendaImagePanel, DesktopPrendaInfoPanel } from './BandoPrendaDesktopPanels.jsx';
@@ -77,25 +75,6 @@ function BandoPrendaInspector({
   const overlayLayerRef = useRef(null);
   const panelRef = useRef(null);
   const arrowRafRef = useRef(null);
-
-  useLayoutEffect(() => {
-    if (hotspotContentSwitchTimeoutRef.current) {
-      window.clearTimeout(hotspotContentSwitchTimeoutRef.current);
-      hotspotContentSwitchTimeoutRef.current = null;
-    }
-    if (arrowRafRef.current !== null) {
-      window.cancelAnimationFrame(arrowRafRef.current);
-      arrowRafRef.current = null;
-    }
-    setActiveHotspotIndex(null);
-    setActiveOverlayHotspotKey(null);
-    setPressedHotspotKey(null);
-    setOverlayArrowStartPoint(null);
-    setContentHotspotKey(null);
-    setIsHotspotContentVisible(true);
-    setActiveImageHasError(false);
-    setArrowGeometry(null);
-  }, [bandoName, imageSrc, normalizedHotspots.length, normalizedOverlayHotspots.length]);
 
   const activeMarkerHotspot =
     activeHotspotIndex === null ? null : normalizedHotspots[activeHotspotIndex] ?? null;
@@ -212,25 +191,11 @@ function BandoPrendaInspector({
     }
     return '0deg';
   })();
-  const isSoldadoLineaAccent = accentColor?.toLowerCase() === '#7fa9d6';
-  const isSigloXXAccent = accentColor?.toLowerCase() === '#c1a04d';
-  const isUniforme1926HotspotTheme = /uniforme\s*1926/i.test(bandoName ?? '');
-  const isSoldadoLineaHotspotTheme = /soldado\s*de\s*l[iÃ­]nea/i.test(bandoName ?? '');
-  const hotspotAccentMode = isSigloXXAccent || isUniforme1926HotspotTheme || isSoldadoLineaHotspotTheme
-    ? 'red'
-    : isSoldadoLineaAccent
-      ? 'blue'
-      : 'default';
+  const isSoldadoLineaHotspotTheme = /soldado\s*de\s*l[ií]nea/i.test(bandoName ?? '');
+  const isSoldadoRepublicanoHotspotTheme = /soldado\s*republicano/i.test(bandoName ?? '');
+  const hotspotAccentMode =
+    isSoldadoLineaHotspotTheme || isSoldadoRepublicanoHotspotTheme ? 'red' : 'default';
   const isElectronApp = typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent);
-  const useHeavyOverlayEffects = true;
-  const overlayOutlineFilterId = 'timeline-mannequin-overlay-outline-filter';
-  const overlayOutlineDilateRadius = 4.2;
-  const overlayOutlineBlur = 2.8;
-  const overlayOutlineColor = hotspotAccentMode === 'red' ? '#ff4218' : '#ffffff';
-  const overlayOutlineOpacity = 1;
-  const overlayOutlineScale = 1;
-  const overlayHaloScaleMultiplier =
-    hotspotAccentMode === 'red' ? 1.58 : hotspotAccentMode === 'blue' ? 1.54 : 1.54;
   const hotspotHaloScaleMultiplier =
     hotspotAccentMode === 'red' ? 1.54 : hotspotAccentMode === 'blue' ? 1.5 : 1.5;
   const showMobilePrendaModal = isMobile && !!activeHotspot;
@@ -240,11 +205,11 @@ function BandoPrendaInspector({
    *
    * @returns {void}
    */
-  function closeActiveHotspot() {
+  const closeActiveHotspot = useCallback(() => {
     setActiveHotspotIndex(null);
     setActiveOverlayHotspotKey(null);
     setOverlayArrowStartPoint(null);
-  }
+  }, []);
 
   useEffect(() => {
     if (!showMobilePrendaModal) return undefined;
@@ -313,6 +278,25 @@ function BandoPrendaInspector({
     panelRef,
     showArrows,
   });
+
+  useLayoutEffect(() => {
+    if (hotspotContentSwitchTimeoutRef.current) {
+      window.clearTimeout(hotspotContentSwitchTimeoutRef.current);
+      hotspotContentSwitchTimeoutRef.current = null;
+    }
+    if (arrowRafRef.current !== null) {
+      window.cancelAnimationFrame(arrowRafRef.current);
+      arrowRafRef.current = null;
+    }
+    setActiveHotspotIndex(null);
+    setActiveOverlayHotspotKey(null);
+    setPressedHotspotKey(null);
+    setOverlayArrowStartPoint(null);
+    setContentHotspotKey(null);
+    setIsHotspotContentVisible(true);
+    setActiveImageHasError(false);
+    setArrowGeometry(null);
+  }, [bandoName, imageSrc, normalizedHotspots.length, normalizedOverlayHotspots.length, setArrowGeometry]);
 
   useEffect(() => {
     setActiveImageHasError(false);
@@ -423,15 +407,6 @@ function BandoPrendaInspector({
         showArrows={showArrows}
       />
 
-      <OverlayOutlineFilter
-        filterId={overlayOutlineFilterId}
-        useHeavyOverlayEffects={useHeavyOverlayEffects}
-        dilateRadius={overlayOutlineDilateRadius}
-        blur={overlayOutlineBlur}
-        color={overlayOutlineColor}
-        opacity={overlayOutlineOpacity}
-      />
-
       <MannequinStage
         activeHotspotIndex={activeHotspotIndex}
         activeOverlayHotspotKey={activeOverlayHotspotKey}
@@ -449,17 +424,13 @@ function BandoPrendaInspector({
         mainImageScaleMultiplier={mainImageScaleMultiplier}
         normalizedHotspots={normalizedHotspots}
         normalizedOverlayHotspots={normalizedOverlayHotspots}
-        overlayHaloScaleMultiplier={overlayHaloScaleMultiplier}
         overlayHotspotRefs={overlayHotspotRefs}
         overlayLayerRef={overlayLayerRef}
-        overlayOutlineFilterId={overlayOutlineFilterId}
-        overlayOutlineScale={overlayOutlineScale}
         pressedHotspotKey={pressedHotspotKey}
         setActiveHotspotIndex={setActiveHotspotIndex}
         setActiveOverlayHotspotKey={setActiveOverlayHotspotKey}
         setOverlayArrowStartPoint={setOverlayArrowStartPoint}
         setPressedHotspotKey={setPressedHotspotKey}
-        useHeavyOverlayEffects={useHeavyOverlayEffects}
         viewportScale={viewportScale}
       />
 
@@ -521,9 +492,6 @@ function BandoPrendaInspector({
 }
 
 export default memo(BandoPrendaInspector);
-
-
-
 
 
 

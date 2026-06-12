@@ -26,4 +26,25 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    files: ['src/data/**/*.{js,jsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    files: [
+      'src/components/bando/BandoPrendaInspector.jsx',
+      'src/pages/TimelineHistoricoGijon.jsx',
+    ],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
+  {
+    files: ['vite.config.js', 'electron/**/*.{js,cjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ])

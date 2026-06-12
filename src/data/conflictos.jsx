@@ -88,15 +88,6 @@ import sublevadoPantalonesFragmento from '../assets/prendas_sublevado/soldado su
 import sublevadoGorroDetalle from '../assets/prendas_sublevado/gorro_sublevado.webp';
 import sublevadoPantalonesDetalle from '../assets/prendas_sublevado/pantalon copia.webp';
 
-const makeHotspots = (...items) =>
-  items.map(([label, detalle, top, left, imagen, extra = {}]) => ({
-    label,
-    detalle,
-    estilo: { top, left },
-    ...(imagen ? { imagen } : {}),
-    ...extra,
-  }));
-
 export const HISTORIA = [
   {
     siglo: "S. XVII",

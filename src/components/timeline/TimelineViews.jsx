@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import BandoPrendaInspector from '../bando/BandoPrendaInspector';
 import {
   BandoCenturyNav,
@@ -16,7 +17,7 @@ import {
   VIEW_TRANSITION_MS,
 } from '../../data/timelineData.jsx';
 
-export function BackgroundLayers({
+function BackgroundLayersComponent({
   baseBackground,
   overlayBackground,
   overlayOpacity,
@@ -47,7 +48,7 @@ export function BackgroundLayers({
   );
 }
 
-export function CreditsButton({
+function CreditsButtonComponent({
   infoIcon,
   isBandoView,
   isMobile,
@@ -95,7 +96,7 @@ export function CreditsButton({
   );
 }
 
-export function TimelineScrollLayer({
+function TimelineScrollLayerComponent({
   handlePointerDown,
   handlePointerEnd,
   handlePointerMove,
@@ -174,7 +175,7 @@ export function TimelineScrollLayer({
   );
 }
 
-export function BandoViewLayer({
+function BandoViewLayerComponent({
   activeConflict,
   activeSiglo,
   bandoNavTargets,
@@ -380,3 +381,8 @@ export function BandoViewLayer({
     </>
   );
 }
+
+export const BackgroundLayers = memo(BackgroundLayersComponent);
+export const CreditsButton = memo(CreditsButtonComponent);
+export const TimelineScrollLayer = memo(TimelineScrollLayerComponent);
+export const BandoViewLayer = memo(BandoViewLayerComponent);

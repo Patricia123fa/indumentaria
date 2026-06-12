@@ -1,4 +1,4 @@
-﻿import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { BACKGROUND_FADE_MS } from '../../data/timelineData.jsx';
 
 export function useBackgroundTransition({
@@ -12,7 +12,9 @@ export function useBackgroundTransition({
   setOverlayBackground,
   setOverlayOpacity,
 }) {
-  const runNextBackgroundTransition = useCallback(() => {
+  const runBackgroundTransitionRef = useRef(null);
+
+  const clearPendingTransition = useCallback(() => {
     if (backgroundFadeTimeoutRef.current) {
       window.clearTimeout(backgroundFadeTimeoutRef.current);
       backgroundFadeTimeoutRef.current = null;
@@ -21,8 +23,11 @@ export function useBackgroundTransition({
       window.cancelAnimationFrame(backgroundFadeRafRef.current);
       backgroundFadeRafRef.current = null;
     }
+  }, [backgroundFadeRafRef, backgroundFadeTimeoutRef]);
 
-    const nextBackground = backgroundQueueRef.current.shift();
+  const runBackgroundTransition = useCallback((nextBackground) => {
+    clearPendingTransition();
+
     if (!nextBackground) {
       isBackgroundTransitionRunningRef.current = false;
       lastQueuedBackgroundRef.current = currentBaseBackgroundRef.current;
@@ -49,12 +54,15 @@ export function useBackgroundTransition({
       setOverlayBackground(null);
       setOverlayOpacity(0);
       backgroundFadeTimeoutRef.current = null;
+
       if (backgroundQueueRef.current.length > 0) {
-        runNextBackgroundTransition();
-      } else {
-        isBackgroundTransitionRunningRef.current = false;
-        lastQueuedBackgroundRef.current = currentBaseBackgroundRef.current;
+        const queuedBackground = backgroundQueueRef.current.shift();
+        runBackgroundTransitionRef.current?.(queuedBackground);
+        return;
       }
+
+      isBackgroundTransitionRunningRef.current = false;
+      lastQueuedBackgroundRef.current = currentBaseBackgroundRef.current;
     }, BACKGROUND_FADE_MS);
   }, [
     backgroundFadeRafRef,
@@ -64,9 +72,14 @@ export function useBackgroundTransition({
     isBackgroundTransitionRunningRef,
     lastQueuedBackgroundRef,
     setBaseBackground,
+    clearPendingTransition,
     setOverlayBackground,
     setOverlayOpacity,
   ]);
+
+  useEffect(() => {
+    runBackgroundTransitionRef.current = runBackgroundTransition;
+  }, [runBackgroundTransition]);
 
   return useCallback(
     (targetBackground) => {
@@ -86,7 +99,8 @@ export function useBackgroundTransition({
       lastQueuedBackgroundRef.current = targetBackground;
 
       if (!isBackgroundTransitionRunningRef.current) {
-        runNextBackgroundTransition();
+        const nextBackground = backgroundQueueRef.current.shift();
+        runBackgroundTransition(nextBackground);
       }
     },
     [
@@ -94,8 +108,7 @@ export function useBackgroundTransition({
       currentBaseBackgroundRef,
       isBackgroundTransitionRunningRef,
       lastQueuedBackgroundRef,
-      runNextBackgroundTransition,
+      runBackgroundTransition,
     ],
   );
 }
-

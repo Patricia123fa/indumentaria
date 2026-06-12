@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, powerSaveBlocker, shell } = require('electron');
+const { app, BrowserWindow, Menu, powerSaveBlocker, shell, ipcMain } = require('electron');
 const path = require('path');
 
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
@@ -8,12 +8,14 @@ function createWindow() {
   const window = new BrowserWindow({
     width: 1440,
     height: 900,
+    fullscreen: true,
     backgroundColor: '#0f0f0f',
     autoHideMenuBar: true,
     webPreferences: {
       backgroundThrottling: false,
       contextIsolation: true,
       nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.cjs'),
       sandbox: true,
     },
   });
@@ -31,6 +33,13 @@ function createWindow() {
 }
 
 let powerSaveBlockerId = null;
+
+ipcMain.on('window:exit-fullscreen', (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (window && !window.isDestroyed()) {
+    window.setFullScreen(false);
+  }
+});
 
 app.whenReady().then(() => {
   powerSaveBlockerId = powerSaveBlocker.start('prevent-app-suspension');
